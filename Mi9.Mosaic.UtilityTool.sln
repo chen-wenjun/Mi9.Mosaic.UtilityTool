@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublicWebServiceEncryption", "PublicWebServiceEncryption\PublicWebServiceEncryption.csproj", "{CE9B8B0E-E788-4207-A9C8-F2C5BC7AE44B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsHardwareInfo", "WindowsHardwareInfo\WindowsHardwareInfo.csproj", "{3C150CED-41A4-48E1-992F-F027BBA6D821}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PasswordPolicy.TestTool", "PasswordPolicy.TestTool\PasswordPolicy.TestTool.csproj", "{4495CEBC-8D61-46E7-A510-9671D116E3F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PasswordPolicy.TestTool64", "PasswordPolicy.TestTool64\PasswordPolicy.TestTool64.csproj", "{C568FFDD-8EA9-4314-9062-F88D9F528A2E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WcfRestDateJsonTestTool", "WcfRestDateJsonTestTool\WcfRestDateJsonTestTool.csproj", "{4744E218-EEDE-4BB1-B993-343B8CB479D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetHashCodeTest32", "GetHashCodeTest32\GetHashCodeTest32.csproj", "{BFA4E61D-E887-4C95-A69F-315552168A23}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetHashCodeTest64", "GetHashCodeTest64\GetHashCodeTest64.csproj", "{445E1E6B-60BA-4EF5-AB11-58F79A65DA63}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CE9B8B0E-E788-4207-A9C8-F2C5BC7AE44B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE9B8B0E-E788-4207-A9C8-F2C5BC7AE44B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE9B8B0E-E788-4207-A9C8-F2C5BC7AE44B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE9B8B0E-E788-4207-A9C8-F2C5BC7AE44B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C150CED-41A4-48E1-992F-F027BBA6D821}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C150CED-41A4-48E1-992F-F027BBA6D821}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C150CED-41A4-48E1-992F-F027BBA6D821}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C150CED-41A4-48E1-992F-F027BBA6D821}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4495CEBC-8D61-46E7-A510-9671D116E3F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4495CEBC-8D61-46E7-A510-9671D116E3F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4495CEBC-8D61-46E7-A510-9671D116E3F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4495CEBC-8D61-46E7-A510-9671D116E3F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C568FFDD-8EA9-4314-9062-F88D9F528A2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C568FFDD-8EA9-4314-9062-F88D9F528A2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C568FFDD-8EA9-4314-9062-F88D9F528A2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C568FFDD-8EA9-4314-9062-F88D9F528A2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4744E218-EEDE-4BB1-B993-343B8CB479D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4744E218-EEDE-4BB1-B993-343B8CB479D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4744E218-EEDE-4BB1-B993-343B8CB479D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4744E218-EEDE-4BB1-B993-343B8CB479D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFA4E61D-E887-4C95-A69F-315552168A23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFA4E61D-E887-4C95-A69F-315552168A23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFA4E61D-E887-4C95-A69F-315552168A23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFA4E61D-E887-4C95-A69F-315552168A23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{445E1E6B-60BA-4EF5-AB11-58F79A65DA63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{445E1E6B-60BA-4EF5-AB11-58F79A65DA63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{445E1E6B-60BA-4EF5-AB11-58F79A65DA63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{445E1E6B-60BA-4EF5-AB11-58F79A65DA63}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
