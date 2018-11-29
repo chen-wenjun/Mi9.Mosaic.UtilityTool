@@ -11,8 +11,7 @@ namespace MosaicPosLogTool
         string CurrentLine { get; }
         IList<string> LogFiles { get; }
 
-        bool ReadNextLine();
-        void ProcessLine();
+        string ProcessLine();
         bool WriteLine(string sessionId);
     }
 }

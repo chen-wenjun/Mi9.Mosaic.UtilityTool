@@ -20,9 +20,9 @@ namespace MosaicPosLogTool
         private void processLogFilesBtn_Click(object sender, EventArgs e)
         {
             var logProcessor = new LogProcessor();
+            logProcessor.StartProcess();
 
-
-
+            MessageBox.Show("Log files processed successfully!");
         }
     }
 }
