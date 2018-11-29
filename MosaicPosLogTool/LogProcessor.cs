@@ -90,10 +90,10 @@ namespace MosaicPosLogTool
             string sessionId = null;
             if(_currentLine != null)
             {
-                if(_currentLine.Contains(@"1664  ms [             13] 2018-11-26 13:30:18,348 [ERROR] Raymark.Web.POSService.ExceptionManager => ThrowPosFaultException"))
-                {
-                    ;
-                }
+                //if(_currentLine.Contains(@"1664  ms [             13] 2018-11-26 13:30:18,348 [ERROR] Raymark.Web.POSService.ExceptionManager => ThrowPosFaultException"))
+                //{
+                //    ;
+                //}
 
                 int? threadId = null;
                 bool hasSessionId = false;
