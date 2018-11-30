@@ -97,6 +97,7 @@ namespace MosaicPosLogTool
 
                 int? threadId = null;
                 bool hasSessionId = false;
+                string timeStamp = "";
 
                 Match match = Regex.Match(_currentLine, @"\[SessionId\]=([^;]+);", RegexOptions.IgnoreCase);
                 if(match.Success)
@@ -120,6 +121,11 @@ namespace MosaicPosLogTool
                     threadId = Convert.ToInt32(match.Groups[1].Value);
                 }
 
+                //match = Regex.Match(_currentLine, @"\[\s*\d+\] (.+) \[(INFO |ERROR|DEBUG|WARN |FATAL)\]", RegexOptions.IgnoreCase);
+                //if(match.Success)
+                //{
+                //    timeStamp = match.Groups[1].Value;
+                //}
 
                 // Update sessionId Dictionary
                 if(sessionId != null) // sessionId not null (threadId must be not null as well)
