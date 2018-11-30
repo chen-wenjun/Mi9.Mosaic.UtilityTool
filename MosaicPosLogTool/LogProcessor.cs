@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -17,20 +18,22 @@ namespace MosaicPosLogTool
         private Dictionary<int, string> _threadDic;
         private int? _lastThreadId;
         private string _outputPath;
+        private IProgress<ProgressReportModel> _progress;
 
 
-        public LogProcessor()
+        public LogProcessor(IProgress<ProgressReportModel> progress)
         {
             _logFiles = new List<string>();
             _sessionDic = new Dictionary<string, SessionData>();
             _threadDic = new Dictionary<int, string>();
+            _progress = progress;
         }
 
-        public void StartProcess()
+        public async Task StartProcess()
         {
             LoadFiles();
             CreateOutputFolder();
-            ProcessFiles();
+            await ProcessFiles();
         }
 
         private void CreateOutputFolder()
@@ -51,44 +54,84 @@ namespace MosaicPosLogTool
                                 .Select(f => f.FullName)
                                 .ToList();
 
+            ProgressReportModel report = new ProgressReportModel();
+            report.ReportType = ProgressReportTypeEnum.FileList;
+            report.LogFiles = _logFiles;
+            _progress.Report(report);
+
         }
 
-        private void ProcessFiles()
+        private async Task ProcessFiles()
         {
-            try
+            await Task.Run(() =>
             {
-                foreach(var logFile in _logFiles)
-                {
-                    if(File.Exists(logFile))
-                    {
-                        using ( var reader = new StreamReader(logFile))
-                        {
-                            _currentLine = reader.ReadLine();
-                        
-                            while(_currentLine != null)
-                            {
-                                string sessionId = ProcessLine();
-                                WriteLine(sessionId);
+                ProgressReportModel report = new ProgressReportModel();
 
+                Stopwatch watchTotal = Stopwatch.StartNew();
+
+                try
+                {
+                    foreach(var logFile in _logFiles)
+                    {
+                        if(File.Exists(logFile))
+                        {
+                            report.ReportType = ProgressReportTypeEnum.CurrentFile;
+                            report.CurrentProcessingFile = logFile;
+                            _progress.Report(report);
+
+                            Stopwatch watch = Stopwatch.StartNew();
+
+                            using ( var reader = new StreamReader(logFile))
+                            {
                                 _currentLine = reader.ReadLine();
+                                int lineNumber = 1;
+                       
+                                while(_currentLine != null)
+                                {
+                                    if(lineNumber % 100 == 0)
+                                    {
+                                        report.ReportType = ProgressReportTypeEnum.CurrentLineNumber;
+                                        report.CurrentProcessingFileLineNumber = lineNumber;
+                                        _progress.Report(report);
+                                    }
+
+                                    string sessionId = ProcessLine();
+                                    WriteLine(sessionId);
+
+                                    _currentLine = reader.ReadLine();
+                                    lineNumber++;
+                                }
                             }
+
+                            watch.Stop();
+
+                            report.ReportType = ProgressReportTypeEnum.CurrentFileProcessTime;
+                            report.CurrentFileProcessTime = watch.Elapsed.ToString();
+                            _progress.Report(report);
                         }
                     }
                 }
-            }
-            finally
-            {
-                foreach(var sessionPair in _sessionDic)
+                finally
                 {
-                    var sessionId = sessionPair.Key;
-                    var session = sessionPair.Value;
-                    if(session.Writer != null)
+                    foreach(var sessionPair in _sessionDic)
                     {
-                        session.Writer.Close();
-                        File.Move(session.FileName, $@"{_outputPath}\[{session.StartTime}]-[{session.EndTime}]{sessionId}.txt");
+                        var sessionId = sessionPair.Key;
+                        var session = sessionPair.Value;
+                        if(session.Writer != null)
+                        {
+                            session.Writer.Close();
+                            File.Move(session.FileName, $@"{_outputPath}\[{session.StartTime}]-[{session.EndTime}]{sessionId}.txt");
+                        }
                     }
+
+                    watchTotal.Stop();
+
+                    report.ReportType = ProgressReportTypeEnum.TotalProcessTime;
+                    report.TotalProcessTime = watchTotal.Elapsed.ToString();
+                    _progress.Report(report);
                 }
-            }
+
+            });
 
         }
 
@@ -107,10 +150,10 @@ namespace MosaicPosLogTool
             string sessionId = null;
             if(_currentLine != null)
             {
-                if (_currentLine.Contains(@"2052539ms [             62] 2018-11-21 09:51:21,533 [ERROR] Raymark.EpaymentModule.Epayment => GetMainData - string responseStr"))
-                {
-                    ;
-                }
+                //if (_currentLine.Contains(@"2052539ms [             62] 2018-11-21 09:51:21,533 [ERROR] Raymark.EpaymentModule.Epayment => GetMainData - string responseStr"))
+                //{
+                //    ;
+                //}
 
                 int? threadId = null;
                 bool foundSessionId = false;
