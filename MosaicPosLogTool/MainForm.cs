@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -12,6 +13,7 @@ namespace MosaicPosLogTool
 {
     public partial class MainForm : Form
     {
+        CancellationTokenSource cancellationTokenSource;
         public MainForm()
         {
             InitializeComponent();
@@ -22,19 +24,28 @@ namespace MosaicPosLogTool
             var progress = new Progress<ProgressReportModel>();
             progress.ProgressChanged += Progress_ProgressChanged;
 
+            cancellationTokenSource = new CancellationTokenSource();
 
-            var logProcessor = new LogProcessor(progress);
+            var logProcessor = new LogProcessor(progress, cancellationTokenSource.Token);
 
             processLogFilesBtn.Enabled = false;
+            clearBoxBtn.Enabled = false;
             
             try
             {
+                cancelProcessBtn.Enabled = true;
                 await logProcessor.StartProcess();
                 MessageBox.Show("Log files processed successfully!");
+            }
+            catch(OperationCanceledException)
+            {
+                detailLBox.Items.Add("The process was cancelled!");
             }
             finally
             {
                 processLogFilesBtn.Enabled = true;
+                clearBoxBtn.Enabled = true;
+                cancelProcessBtn.Enabled = false;
             }
 
         }
@@ -43,6 +54,7 @@ namespace MosaicPosLogTool
         {
             if(e.ReportType == ProgressReportTypeEnum.FileList)
             {
+                filesLBox.Items.Clear();
                 filesLBox.Items.AddRange(e.LogFiles.ToArray());
             }
             else if(e.ReportType == ProgressReportTypeEnum.CurrentFile)
@@ -67,6 +79,7 @@ namespace MosaicPosLogTool
         private void MainForm_Load(object sender, EventArgs e)
         {
             folderTBox.Text = Environment.CurrentDirectory;
+            cancelProcessBtn.Enabled = false;
         }
 
         private void selectFolderBtn_Click(object sender, EventArgs e)
@@ -77,6 +90,20 @@ namespace MosaicPosLogTool
                 Environment.CurrentDirectory = folderBrowserDialog1.SelectedPath;
             }
 
+        }
+
+        private void cancelProcessBtn_Click(object sender, EventArgs e)
+        {
+            if(cancellationTokenSource != null)
+            {
+                cancellationTokenSource.Cancel();
+            }
+        }
+
+        private void clearBoxBtn_Click(object sender, EventArgs e)
+        {
+            detailLBox.Items.Clear();
+            filesLBox.Items.Clear();
         }
     }
 }

@@ -36,6 +36,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.detailLBox = new System.Windows.Forms.ListBox();
+            this.cancelProcessBtn = new System.Windows.Forms.Button();
+            this.clearBoxBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // processLogFilesBtn
@@ -110,14 +112,40 @@
             this.detailLBox.ItemHeight = 16;
             this.detailLBox.Location = new System.Drawing.Point(8, 236);
             this.detailLBox.Name = "detailLBox";
-            this.detailLBox.Size = new System.Drawing.Size(642, 308);
+            this.detailLBox.Size = new System.Drawing.Size(642, 212);
             this.detailLBox.TabIndex = 6;
+            // 
+            // cancelProcessBtn
+            // 
+            this.cancelProcessBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.cancelProcessBtn.Location = new System.Drawing.Point(7, 459);
+            this.cancelProcessBtn.Name = "cancelProcessBtn";
+            this.cancelProcessBtn.Size = new System.Drawing.Size(642, 32);
+            this.cancelProcessBtn.TabIndex = 7;
+            this.cancelProcessBtn.Text = "Cancel Process";
+            this.cancelProcessBtn.UseVisualStyleBackColor = true;
+            this.cancelProcessBtn.Click += new System.EventHandler(this.cancelProcessBtn_Click);
+            // 
+            // clearBoxBtn
+            // 
+            this.clearBoxBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.clearBoxBtn.Location = new System.Drawing.Point(7, 497);
+            this.clearBoxBtn.Name = "clearBoxBtn";
+            this.clearBoxBtn.Size = new System.Drawing.Size(642, 32);
+            this.clearBoxBtn.TabIndex = 8;
+            this.clearBoxBtn.Text = "Clear Box";
+            this.clearBoxBtn.UseVisualStyleBackColor = true;
+            this.clearBoxBtn.Click += new System.EventHandler(this.clearBoxBtn_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(657, 561);
+            this.ClientSize = new System.Drawing.Size(657, 541);
+            this.Controls.Add(this.clearBoxBtn);
+            this.Controls.Add(this.cancelProcessBtn);
             this.Controls.Add(this.detailLBox);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -144,6 +172,8 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ListBox detailLBox;
+        private System.Windows.Forms.Button cancelProcessBtn;
+        private System.Windows.Forms.Button clearBoxBtn;
     }
 }
 

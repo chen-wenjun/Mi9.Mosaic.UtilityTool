@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MosaicPosLogTool
@@ -19,14 +20,16 @@ namespace MosaicPosLogTool
         private int? _lastThreadId;
         private string _outputPath;
         private IProgress<ProgressReportModel> _progress;
+        private CancellationToken _cancellationToken;
 
 
-        public LogProcessor(IProgress<ProgressReportModel> progress)
+        public LogProcessor(IProgress<ProgressReportModel> progress, CancellationToken cancellationToken)
         {
             _logFiles = new List<string>();
             _sessionDic = new Dictionary<string, SessionData>();
             _threadDic = new Dictionary<int, string>();
             _progress = progress;
+            _cancellationToken = cancellationToken;
         }
 
         public async Task StartProcess()
@@ -88,6 +91,8 @@ namespace MosaicPosLogTool
                        
                                 while(_currentLine != null)
                                 {
+                                    _cancellationToken.ThrowIfCancellationRequested();
+
                                     if(lineNumber % 1000 == 0)
                                     {
                                         report.ReportType = ProgressReportTypeEnum.CurrentLineNumber;
@@ -163,7 +168,8 @@ namespace MosaicPosLogTool
 
                 int? threadId = null;
                 bool foundSessionId = false;
-                string timeStamp = "";
+                string timeStamp = string.Empty;
+                string operation = null;
 
                 Match match = Regex.Match(_currentLine, @"\[SessionId\]=([^;]+);", RegexOptions.IgnoreCase);
                 if(match.Success)
@@ -191,6 +197,43 @@ namespace MosaicPosLogTool
                 if(match.Success)
                 {
                     timeStamp = match.Groups[1].Value.Replace(':', '.');
+                }
+
+                match = Regex.Match(_currentLine, @"\[Operation\]=([^;]+);", RegexOptions.IgnoreCase);
+                if(match.Success)
+                {
+                    operation = match.Groups[1].Value;
+                }
+                else
+                {
+                    match = Regex.Match(_currentLine, @"<Operation>=([^;]+);", RegexOptions.IgnoreCase);
+                    if(match.Success)
+                    {
+                        operation = match.Groups[1].Value;
+                    }
+                    else
+                    {
+                        match = Regex.Match(_currentLine, @"\[Operation\]([^,]+),", RegexOptions.IgnoreCase);
+                        if(match.Success)
+                        {
+                            operation = match.Groups[1].Value;
+                        }
+                        else
+                        {
+                            match = Regex.Match(_currentLine, @"Operation=([^,]+),", RegexOptions.IgnoreCase);
+                            if(match.Success)
+                            {
+                                operation = match.Groups[1].Value;
+                            }
+                        }
+                    }
+                }
+
+                // Update line inserting Operaton column
+                if(operation != null && timeStamp != string.Empty)
+                {
+                    // Max operation length is 46
+                    _currentLine = _currentLine.Substring(0, 60) + $"[  {operation.PadRight(30)} ] " + _currentLine.Substring(60);
                 }
 
                 // Update sessionId Dictionary
