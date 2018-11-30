@@ -47,20 +47,20 @@ namespace MosaicPosLogTool
             }
             else if(e.ReportType == ProgressReportTypeEnum.CurrentFile)
             {
-                detailLBox.Items.Add($"Processing File: {e.CurrentProcessingFile}...");
-                detailLBox.Items.Add($"Processing Line: {e.CurrentProcessingFileLineNumber}...");
+                detailLBox.Items.Add($"Processing File: {e.CurrentProcessingFile}");
+                detailLBox.Items.Add($"Processing Line: {e.CurrentProcessingFileLineNumber}");
             }
             else if(e.ReportType == ProgressReportTypeEnum.CurrentLineNumber)
             {
-                detailLBox.Items[detailLBox.Items.Count- 1] = $"Processing Line: {e.CurrentProcessingFileLineNumber}...";
+                detailLBox.Items[detailLBox.Items.Count- 1] = $"Processing Line: {e.CurrentProcessingFileLineNumber}";
             }
             else if(e.ReportType == ProgressReportTypeEnum.CurrentFileProcessTime)
             {
-                detailLBox.Items.Add($"Process Time for the file: {e.CurrentFileProcessTime}...");
+                detailLBox.Items.Add($"Process Time for the file: {e.CurrentFileProcessTime}");
             }
             else if(e.ReportType == ProgressReportTypeEnum.TotalProcessTime)
             {
-                detailLBox.Items.Add($"Total Process Time for all the files: {e.TotalProcessTime}...");
+                detailLBox.Items.Add($"Total Process Time for all the files: {e.TotalProcessTime}");
             }
         }
 

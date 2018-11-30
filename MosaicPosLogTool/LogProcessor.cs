@@ -88,7 +88,7 @@ namespace MosaicPosLogTool
                        
                                 while(_currentLine != null)
                                 {
-                                    if(lineNumber % 100 == 0)
+                                    if(lineNumber % 1000 == 0)
                                     {
                                         report.ReportType = ProgressReportTypeEnum.CurrentLineNumber;
                                         report.CurrentProcessingFileLineNumber = lineNumber;
@@ -120,7 +120,13 @@ namespace MosaicPosLogTool
                         if(session.Writer != null)
                         {
                             session.Writer.Close();
-                            File.Move(session.FileName, $@"{_outputPath}\[{session.StartTime}]-[{session.EndTime}]{sessionId}.txt");
+                            string newFileName = $@"{_outputPath}\[{session.StartTime}]-[{session.EndTime}]{sessionId}.txt";
+                            if(File.Exists(newFileName))
+                            {
+                                File.Delete(newFileName);
+                            }
+
+                            File.Move(session.FileName, newFileName);
                         }
                     }
 

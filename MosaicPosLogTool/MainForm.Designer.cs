@@ -126,6 +126,7 @@
             this.Controls.Add(this.selectFolderBtn);
             this.Controls.Add(this.processLogFilesBtn);
             this.Name = "MainForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Mosaic POS Log Tool";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.ResumeLayout(false);
