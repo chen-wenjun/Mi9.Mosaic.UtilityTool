@@ -13,5 +13,7 @@ namespace MosaicPosLogTool
         public bool FileExists { get; set; }
         public int LastThreadId { get; set; }
         public StreamWriter Writer { get; set; }
+        public string StartTime { get; set; }
+        public string EndTime { get; set; }
     }
 }

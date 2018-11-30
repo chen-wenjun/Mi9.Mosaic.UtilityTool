@@ -13,16 +13,16 @@ namespace MosaicPosLogTool
     {
         private string _currentLine;
         private List<string> _logFiles;
-        private Dictionary<string, int> _sessionDic;
+        private Dictionary<string, SessionData> _sessionDic;
         private Dictionary<int, string> _threadDic;
-        private int? _lastThread;
+        private int? _lastThreadId;
         private string _outputPath;
 
 
         public LogProcessor()
         {
             _logFiles = new List<string>();
-            _sessionDic = new Dictionary<string, int>();
+            _sessionDic = new Dictionary<string, SessionData>();
             _threadDic = new Dictionary<int, string>();
         }
 
@@ -55,24 +55,41 @@ namespace MosaicPosLogTool
 
         private void ProcessFiles()
         {
-            foreach(var logFile in _logFiles)
+            try
             {
-                if(File.Exists(logFile))
+                foreach(var logFile in _logFiles)
                 {
-                    using ( var reader = new StreamReader(logFile))
+                    if(File.Exists(logFile))
                     {
-                        _currentLine = reader.ReadLine();
-                        
-                        while(_currentLine != null)
+                        using ( var reader = new StreamReader(logFile))
                         {
-                            string sessionId = ProcessLine();
-                            WriteLine(sessionId);
-
                             _currentLine = reader.ReadLine();
+                        
+                            while(_currentLine != null)
+                            {
+                                string sessionId = ProcessLine();
+                                WriteLine(sessionId);
+
+                                _currentLine = reader.ReadLine();
+                            }
                         }
                     }
                 }
             }
+            finally
+            {
+                foreach(var sessionPair in _sessionDic)
+                {
+                    var sessionId = sessionPair.Key;
+                    var session = sessionPair.Value;
+                    if(session.Writer != null)
+                    {
+                        session.Writer.Close();
+                        File.Move(session.FileName, $@"{_outputPath}\[{session.StartTime}]-[{session.EndTime}]{sessionId}.txt");
+                    }
+                }
+            }
+
         }
 
         public string CurrentLine
@@ -90,20 +107,20 @@ namespace MosaicPosLogTool
             string sessionId = null;
             if(_currentLine != null)
             {
-                //if(_currentLine.Contains(@"1664  ms [             13] 2018-11-26 13:30:18,348 [ERROR] Raymark.Web.POSService.ExceptionManager => ThrowPosFaultException"))
-                //{
-                //    ;
-                //}
+                if (_currentLine.Contains(@"2052539ms [             62] 2018-11-21 09:51:21,533 [ERROR] Raymark.EpaymentModule.Epayment => GetMainData - string responseStr"))
+                {
+                    ;
+                }
 
                 int? threadId = null;
-                bool hasSessionId = false;
+                bool foundSessionId = false;
                 string timeStamp = "";
 
                 Match match = Regex.Match(_currentLine, @"\[SessionId\]=([^;]+);", RegexOptions.IgnoreCase);
                 if(match.Success)
                 {
                     sessionId = match.Groups[1].Value;
-                    hasSessionId = true;
+                    foundSessionId = true;
                 }
                 else
                 {
@@ -111,7 +128,7 @@ namespace MosaicPosLogTool
                     if(match.Success)
                     {
                         sessionId = match.Groups[1].Value;
-                        hasSessionId = true;
+                        foundSessionId = true;
                     }
                 }
 
@@ -121,25 +138,35 @@ namespace MosaicPosLogTool
                     threadId = Convert.ToInt32(match.Groups[1].Value);
                 }
 
-                //match = Regex.Match(_currentLine, @"\[\s*\d+\] (.+) \[(INFO |ERROR|DEBUG|WARN |FATAL)\]", RegexOptions.IgnoreCase);
-                //if(match.Success)
-                //{
-                //    timeStamp = match.Groups[1].Value;
-                //}
+                match = Regex.Match(_currentLine, @"\[\s*\d+\] (.+) \[(INFO |ERROR|DEBUG|WARN |FATAL)\]", RegexOptions.IgnoreCase);
+                if(match.Success)
+                {
+                    timeStamp = match.Groups[1].Value.Replace(':', '.');
+                }
 
                 // Update sessionId Dictionary
                 if(sessionId != null) // sessionId not null (threadId must be not null as well)
                 {
-                    if(_sessionDic.ContainsKey(sessionId))
+                    if(!_sessionDic.ContainsKey(sessionId))
                     {
-                        _sessionDic[sessionId] = threadId.Value;
+                         _sessionDic.Add(sessionId, new SessionData());
                     }
-                    else
+
+                    if(threadId.HasValue)
                     {
-                        _sessionDic.Add(sessionId, threadId.Value);
+                        _sessionDic[sessionId].LastThreadId = threadId.Value;
+                    }
+
+                    if(timeStamp != null)
+                    {
+                        if(_sessionDic[sessionId].StartTime == null)
+                        {
+                            _sessionDic[sessionId].StartTime = timeStamp;
+                        }
+
+                        _sessionDic[sessionId].EndTime = timeStamp;
                     }
                 }
-
 
 
                 // Get sessionId linked to the current line
@@ -154,9 +181,9 @@ namespace MosaicPosLogTool
                     }
                     else
                     {
-                        if(_lastThread.HasValue && _threadDic.ContainsKey(_lastThread.Value))
+                        if(_lastThreadId.HasValue && _threadDic.ContainsKey(_lastThreadId.Value))
                         {
-                            sessionId = _threadDic[_lastThread.Value];
+                            sessionId = _threadDic[_lastThreadId.Value];
                         }
                     }
 
@@ -166,9 +193,9 @@ namespace MosaicPosLogTool
                 // Update threadId Dictionary
                 if(threadId.HasValue)
                 {
-                    _lastThread = threadId.Value;
+                    _lastThreadId = threadId.Value;
 
-                    if(hasSessionId)
+                    if(foundSessionId)
                     {
                         if(_threadDic.ContainsKey(threadId.Value))
                         {
@@ -181,25 +208,30 @@ namespace MosaicPosLogTool
                     }
 
                 }
+            }
 
-
+            if(sessionId == null)
+            {
+                sessionId = "void";
+                if(!_sessionDic.ContainsKey(sessionId))
+                {
+                    _sessionDic.Add(sessionId, new SessionData());
+                }
             }
 
             return sessionId;
         }
 
-        public bool WriteLine(string sessionId)
+        public void WriteLine(string sessionId)
         {
-            if(sessionId == null)
-                sessionId = "void";
-
-            var filePath = $@"{_outputPath}\{sessionId}.txt";
-            using(var writer = new StreamWriter(filePath, true))
+            var session = _sessionDic[sessionId];
+            if(session.Writer == null)
             {
-                writer.WriteLine(_currentLine);
+                session.FileName = $@"{_outputPath}\{sessionId}";
+                session.Writer = new StreamWriter(session.FileName, true);
             }
 
-            return true;
+            session.Writer.WriteLine(_currentLine);
         }
     }
 }
