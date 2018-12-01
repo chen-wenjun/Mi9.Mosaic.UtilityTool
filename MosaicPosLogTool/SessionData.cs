@@ -15,5 +15,7 @@ namespace MosaicPosLogTool
         public StreamWriter Writer { get; set; }
         public string StartTime { get; set; }
         public string EndTime { get; set; }
+        public int ErrorCount { get; set; }
+        public int FatalCount { get; set; }
     }
 }

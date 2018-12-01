@@ -125,7 +125,7 @@ namespace MosaicPosLogTool
                         if(session.Writer != null)
                         {
                             session.Writer.Close();
-                            string newFileName = $@"{_outputPath}\[{session.StartTime}]-[{session.EndTime}]{sessionId}.txt";
+                            string newFileName = $@"{_outputPath}\[{session.StartTime}]-[{session.EndTime}][ERROR({session.ErrorCount})][FATAL({session.FatalCount})]{sessionId}.txt";
                             if(File.Exists(newFileName))
                             {
                                 File.Delete(newFileName);
@@ -170,6 +170,9 @@ namespace MosaicPosLogTool
                 bool foundSessionId = false;
                 string timeStamp = string.Empty;
                 string operation = null;
+                bool isError = false;
+                bool isFatal = false;
+                int operationInsertIndex = 60;
 
                 Match match = Regex.Match(_currentLine, @"\[SessionId\]=([^;]+);", RegexOptions.IgnoreCase);
                 if(match.Success)
@@ -197,6 +200,17 @@ namespace MosaicPosLogTool
                 if(match.Success)
                 {
                     timeStamp = match.Groups[1].Value.Replace(':', '.');
+
+                    if(match.Groups[2].Value == "ERROR")
+                    {
+                        isError = true;
+                    }
+                    else if(match.Groups[2].Value == "FATAL")
+                    {
+                        isFatal = true;
+                    }
+
+                    operationInsertIndex = _currentLine.IndexOf(match.Groups[0].Value) + match.Groups[0].Value.Length + 1;
                 }
 
                 match = Regex.Match(_currentLine, @"\[Operation\]=([^;]+);", RegexOptions.IgnoreCase);
@@ -233,7 +247,7 @@ namespace MosaicPosLogTool
                 if(operation != null && timeStamp != string.Empty)
                 {
                     // Max operation length is 46
-                    _currentLine = _currentLine.Substring(0, 60) + $"[  {operation.PadRight(30)} ] " + _currentLine.Substring(60);
+                    _currentLine = _currentLine.Substring(0, operationInsertIndex) + $"[  {operation.PadRight(30)} ] " + _currentLine.Substring(operationInsertIndex);
                 }
 
                 // Update sessionId Dictionary
@@ -300,14 +314,24 @@ namespace MosaicPosLogTool
                     }
 
                 }
-            }
 
-            if(sessionId == null)
-            {
-                sessionId = "void";
-                if(!_sessionDic.ContainsKey(sessionId))
+                if(sessionId == null)
                 {
-                    _sessionDic.Add(sessionId, new SessionData());
+                    sessionId = "void";
+                    if(!_sessionDic.ContainsKey(sessionId))
+                    {
+                        _sessionDic.Add(sessionId, new SessionData());
+                    }
+                }
+
+                // Update ERROR, FATAL count
+                if (isError)
+                {
+                    _sessionDic[sessionId].ErrorCount++;
+                }
+                else if(isFatal)
+                {
+                    _sessionDic[sessionId].FatalCount++;
                 }
             }
 
