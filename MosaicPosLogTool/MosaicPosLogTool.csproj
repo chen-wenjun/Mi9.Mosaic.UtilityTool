@@ -57,6 +57,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="ProgressReportModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ErrorData.cs" />
     <Compile Include="SessionData.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

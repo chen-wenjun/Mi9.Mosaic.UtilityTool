@@ -25,8 +25,10 @@ namespace MosaicPosLogTool
             progress.ProgressChanged += Progress_ProgressChanged;
 
             cancellationTokenSource = new CancellationTokenSource();
-
-            var logProcessor = new LogProcessor(progress, cancellationTokenSource.Token);
+            
+            var logProcessor = new LogProcessor(progress, cancellationTokenSource.Token, enableAnalysisCBox.Checked, 
+                startDateTimePicker.Checked ? startDateTimePicker.Value : DateTime.MinValue, 
+                endDateTimePicker.Checked ? endDateTimePicker.Value : DateTime.MaxValue);
 
             processLogFilesBtn.Enabled = false;
             clearBoxBtn.Enabled = false;
@@ -80,6 +82,10 @@ namespace MosaicPosLogTool
         {
             folderTBox.Text = Environment.CurrentDirectory;
             cancelProcessBtn.Enabled = false;
+            startDateTimePicker.Value = DateTime.Today.AddMonths(-1);
+            endDateTimePicker.Value = DateTime.Today.AddDays(1);
+            startDateTimePicker.Checked = false;
+            endDateTimePicker.Checked = false;
         }
 
         private void selectFolderBtn_Click(object sender, EventArgs e)

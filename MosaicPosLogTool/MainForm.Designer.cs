@@ -38,15 +38,20 @@
             this.detailLBox = new System.Windows.Forms.ListBox();
             this.cancelProcessBtn = new System.Windows.Forms.Button();
             this.clearBoxBtn = new System.Windows.Forms.Button();
+            this.enableAnalysisCBox = new System.Windows.Forms.CheckBox();
+            this.startDateTimePicker = new System.Windows.Forms.DateTimePicker();
+            this.endDateTimePicker = new System.Windows.Forms.DateTimePicker();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // processLogFilesBtn
             // 
             this.processLogFilesBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.processLogFilesBtn.Location = new System.Drawing.Point(8, 36);
+            this.processLogFilesBtn.Location = new System.Drawing.Point(8, 116);
             this.processLogFilesBtn.Name = "processLogFilesBtn";
-            this.processLogFilesBtn.Size = new System.Drawing.Size(642, 32);
+            this.processLogFilesBtn.Size = new System.Drawing.Size(724, 32);
             this.processLogFilesBtn.TabIndex = 0;
             this.processLogFilesBtn.Text = "Process log files";
             this.processLogFilesBtn.UseVisualStyleBackColor = true;
@@ -55,7 +60,7 @@
             // selectFolderBtn
             // 
             this.selectFolderBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.selectFolderBtn.Location = new System.Drawing.Point(488, 4);
+            this.selectFolderBtn.Location = new System.Drawing.Point(570, 4);
             this.selectFolderBtn.Name = "selectFolderBtn";
             this.selectFolderBtn.Size = new System.Drawing.Size(162, 31);
             this.selectFolderBtn.TabIndex = 1;
@@ -69,7 +74,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.folderTBox.Location = new System.Drawing.Point(8, 8);
             this.folderTBox.Name = "folderTBox";
-            this.folderTBox.Size = new System.Drawing.Size(474, 22);
+            this.folderTBox.Size = new System.Drawing.Size(557, 22);
             this.folderTBox.TabIndex = 2;
             // 
             // filesLBox
@@ -80,15 +85,15 @@
             this.filesLBox.FormattingEnabled = true;
             this.filesLBox.HorizontalScrollbar = true;
             this.filesLBox.ItemHeight = 16;
-            this.filesLBox.Location = new System.Drawing.Point(8, 101);
+            this.filesLBox.Location = new System.Drawing.Point(8, 178);
             this.filesLBox.Name = "filesLBox";
-            this.filesLBox.Size = new System.Drawing.Size(642, 100);
+            this.filesLBox.Size = new System.Drawing.Size(725, 100);
             this.filesLBox.TabIndex = 3;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(5, 81);
+            this.label1.Location = new System.Drawing.Point(5, 158);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(171, 17);
             this.label1.TabIndex = 4;
@@ -97,7 +102,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(5, 216);
+            this.label2.Location = new System.Drawing.Point(5, 293);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(110, 17);
             this.label2.TabIndex = 5;
@@ -110,18 +115,18 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.detailLBox.FormattingEnabled = true;
             this.detailLBox.ItemHeight = 16;
-            this.detailLBox.Location = new System.Drawing.Point(8, 236);
+            this.detailLBox.Location = new System.Drawing.Point(8, 313);
             this.detailLBox.Name = "detailLBox";
-            this.detailLBox.Size = new System.Drawing.Size(642, 212);
+            this.detailLBox.Size = new System.Drawing.Size(725, 196);
             this.detailLBox.TabIndex = 6;
             // 
             // cancelProcessBtn
             // 
             this.cancelProcessBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.cancelProcessBtn.Location = new System.Drawing.Point(7, 459);
+            this.cancelProcessBtn.Location = new System.Drawing.Point(8, 516);
             this.cancelProcessBtn.Name = "cancelProcessBtn";
-            this.cancelProcessBtn.Size = new System.Drawing.Size(642, 32);
+            this.cancelProcessBtn.Size = new System.Drawing.Size(725, 32);
             this.cancelProcessBtn.TabIndex = 7;
             this.cancelProcessBtn.Text = "Cancel Process";
             this.cancelProcessBtn.UseVisualStyleBackColor = true;
@@ -131,19 +136,79 @@
             // 
             this.clearBoxBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.clearBoxBtn.Location = new System.Drawing.Point(7, 497);
+            this.clearBoxBtn.Location = new System.Drawing.Point(8, 554);
             this.clearBoxBtn.Name = "clearBoxBtn";
-            this.clearBoxBtn.Size = new System.Drawing.Size(642, 32);
+            this.clearBoxBtn.Size = new System.Drawing.Size(725, 32);
             this.clearBoxBtn.TabIndex = 8;
             this.clearBoxBtn.Text = "Clear Box";
             this.clearBoxBtn.UseVisualStyleBackColor = true;
             this.clearBoxBtn.Click += new System.EventHandler(this.clearBoxBtn_Click);
             // 
+            // enableAnalysisCBox
+            // 
+            this.enableAnalysisCBox.AutoSize = true;
+            this.enableAnalysisCBox.Checked = true;
+            this.enableAnalysisCBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.enableAnalysisCBox.Location = new System.Drawing.Point(8, 36);
+            this.enableAnalysisCBox.Name = "enableAnalysisCBox";
+            this.enableAnalysisCBox.Size = new System.Drawing.Size(130, 21);
+            this.enableAnalysisCBox.TabIndex = 9;
+            this.enableAnalysisCBox.Text = "Enable Analysis";
+            this.enableAnalysisCBox.UseVisualStyleBackColor = true;
+            // 
+            // startDateTimePicker
+            // 
+            this.startDateTimePicker.Checked = false;
+            this.startDateTimePicker.CustomFormat = "yyyy-MM-dd HH:mm:ss ";
+            this.startDateTimePicker.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.startDateTimePicker.Location = new System.Drawing.Point(88, 58);
+            this.startDateTimePicker.Name = "startDateTimePicker";
+            this.startDateTimePicker.ShowCheckBox = true;
+            this.startDateTimePicker.ShowUpDown = true;
+            this.startDateTimePicker.Size = new System.Drawing.Size(200, 22);
+            this.startDateTimePicker.TabIndex = 10;
+            this.startDateTimePicker.Value = new System.DateTime(2000, 1, 1, 0, 0, 0, 0);
+            // 
+            // endDateTimePicker
+            // 
+            this.endDateTimePicker.Checked = false;
+            this.endDateTimePicker.CustomFormat = "yyyy-MM-dd HH:mm:ss ";
+            this.endDateTimePicker.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.endDateTimePicker.Location = new System.Drawing.Point(88, 84);
+            this.endDateTimePicker.Name = "endDateTimePicker";
+            this.endDateTimePicker.ShowCheckBox = true;
+            this.endDateTimePicker.ShowUpDown = true;
+            this.endDateTimePicker.Size = new System.Drawing.Size(200, 22);
+            this.endDateTimePicker.TabIndex = 11;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(5, 63);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(77, 17);
+            this.label3.TabIndex = 12;
+            this.label3.Text = "Start Time:";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(5, 89);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(72, 17);
+            this.label4.TabIndex = 13;
+            this.label4.Text = "End Time:";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(657, 541);
+            this.ClientSize = new System.Drawing.Size(740, 591);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.endDateTimePicker);
+            this.Controls.Add(this.startDateTimePicker);
+            this.Controls.Add(this.enableAnalysisCBox);
             this.Controls.Add(this.clearBoxBtn);
             this.Controls.Add(this.cancelProcessBtn);
             this.Controls.Add(this.detailLBox);
@@ -174,6 +239,11 @@
         private System.Windows.Forms.ListBox detailLBox;
         private System.Windows.Forms.Button cancelProcessBtn;
         private System.Windows.Forms.Button clearBoxBtn;
+        private System.Windows.Forms.CheckBox enableAnalysisCBox;
+        private System.Windows.Forms.DateTimePicker startDateTimePicker;
+        private System.Windows.Forms.DateTimePicker endDateTimePicker;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
     }
 }
 

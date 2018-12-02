@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -18,18 +19,111 @@ namespace MosaicPosLogTool
         private Dictionary<string, SessionData> _sessionDic;
         private Dictionary<int, string> _threadDic;
         private int? _lastThreadId;
-        private string _outputPath;
+        private string _outputPathLogs;
         private IProgress<ProgressReportModel> _progress;
         private CancellationToken _cancellationToken;
+        private bool _enableAnalysis;
+        private string _outputPathErrors;
+        private Dictionary<ErrorOperationEnum, ErrorData> _errorDic;
+        private DateTime _startTime;
+        private DateTime _endTime;
 
 
-        public LogProcessor(IProgress<ProgressReportModel> progress, CancellationToken cancellationToken)
+        public LogProcessor(IProgress<ProgressReportModel> progress, CancellationToken cancellationToken, bool enableAnalysis, DateTime startTime, DateTime endTime)
         {
             _logFiles = new List<string>();
             _sessionDic = new Dictionary<string, SessionData>();
             _threadDic = new Dictionary<int, string>();
+            _errorDic = new Dictionary<ErrorOperationEnum, ErrorData>();
+            _outputPathLogs = Environment.CurrentDirectory + @"\Logs";
+            _outputPathErrors = Environment.CurrentDirectory + @"\Errors";
             _progress = progress;
             _cancellationToken = cancellationToken;
+            _enableAnalysis = enableAnalysis;
+            _startTime = startTime;
+            _endTime = endTime;
+
+            Init();
+        }
+
+        public string CurrentLine
+        {
+            get { return _currentLine; }
+        }
+
+        public IList<string> LogFiles
+        {
+            get { return _logFiles; }
+        }
+
+        private void Init()
+        {
+            if(_enableAnalysis)
+            {
+                _errorDic.Add(ErrorOperationEnum.Redundant, new ErrorData
+                {
+                    SearchKeys = new List<string>
+                    {
+                    }
+                });
+                _errorDic.Add(ErrorOperationEnum.Others, new ErrorData
+                {
+                    SearchKeys = new List<string>
+                    {
+                    }
+                });
+                _errorDic.Add(ErrorOperationEnum.AddPaymentX, new ErrorData
+                {
+                    SearchKeys = new List<string>
+                    {
+                        @"[ERROR] Raymark.Web.POSService.ExceptionManager => ThrowPosFaultException - [PosFaultType]PaymentFault, [Operation]AddPayment"
+                    }
+                });
+                _errorDic.Add(ErrorOperationEnum.GetCurrentTransaction, new ErrorData
+                {
+                    SearchKeys = new List<string>
+                    {
+                        @"[ERROR] Raymark.Web.POSService.ExceptionManager => ThrowPosFaultException - [PosFaultType]TransactionFault, [Operation]GetCurrentTransaction,"
+                    }
+                });
+                _errorDic.Add(ErrorOperationEnum.GetPasswordPolicy, new ErrorData
+                {
+                    SearchKeys = new List<string>
+                    {
+                        @"[ERROR] Raymark.Web.POSService.ExceptionManager => ThrowFaultException - [Operation]GetPasswordPolicy,"
+                    }
+                });
+                _errorDic.Add(ErrorOperationEnum.LogoutOperator, new ErrorData
+                {
+                    SearchKeys = new List<string>
+                    {
+                        @"[ERROR] Raymark.Web.POSService.ExceptionManager => ThrowPosFaultException - [PosFaultType]SessionFault, [Operation]LogoutOperator,",
+                        @"[ERROR] Raymark.Web.POSService.ExceptionManager => ThrowFaultException - [Operation]LogoutOperator,"
+                    }
+                });
+                _errorDic.Add(ErrorOperationEnum.SaveTransaction, new ErrorData
+                {
+                    SearchKeys = new List<string>
+                    {
+                        @"[FATAL] Raymark.Entities.Transaction => SaveFinal - [Operation]Transaction->SaveFinal(),",
+                        @"[FATAL] Raymark.Entities.Transaction => Void - [Operation]Transaction->Void(),"
+                    }
+                });
+                _errorDic.Add(ErrorOperationEnum.ScanItem, new ErrorData
+                {
+                    SearchKeys = new List<string>
+                    {
+                        @"[ERROR] Raymark.Web.POSService.ExceptionManager => ThrowFaultException - [Operation]ScanItem,"
+                    }
+                });
+                _errorDic.Add(ErrorOperationEnum.StartTransaction, new ErrorData
+                {
+                    SearchKeys = new List<string>
+                    {
+                        @"[ERROR] Raymark.Web.POSService.ExceptionManager => ThrowFaultException - [Operation]StartTransaction,"
+                    }
+                });
+            }
         }
 
         public async Task StartProcess()
@@ -41,10 +135,17 @@ namespace MosaicPosLogTool
 
         private void CreateOutputFolder()
         {
-            _outputPath = Environment.CurrentDirectory + @"\Logs";
-            if(!Directory.Exists(_outputPath))
+            if(!Directory.Exists(_outputPathLogs))
             {
-                Directory.CreateDirectory(_outputPath);
+                Directory.CreateDirectory(_outputPathLogs);
+            }
+
+            if(_enableAnalysis)
+            {
+                if (!Directory.Exists(_outputPathErrors))
+                {
+                    Directory.CreateDirectory(_outputPathErrors);
+                }
             }
         }
 
@@ -61,7 +162,6 @@ namespace MosaicPosLogTool
             report.ReportType = ProgressReportTypeEnum.FileList;
             report.LogFiles = _logFiles;
             _progress.Report(report);
-
         }
 
         private async Task ProcessFiles()
@@ -100,8 +200,11 @@ namespace MosaicPosLogTool
                                         _progress.Report(report);
                                     }
 
-                                    string sessionId = ProcessLine();
-                                    WriteLine(sessionId);
+                                    Tuple<string, ErrorOperationEnum?> result = ProcessLine();
+                                    if (result.Item1 != null)
+                                    {
+                                        WriteLine(result.Item1, result.Item2);
+                                    }
 
                                     _currentLine = reader.ReadLine();
                                     lineNumber++;
@@ -125,13 +228,30 @@ namespace MosaicPosLogTool
                         if(session.Writer != null)
                         {
                             session.Writer.Close();
-                            string newFileName = $@"{_outputPath}\[{session.StartTime}]-[{session.EndTime}][ERROR({session.ErrorCount})][FATAL({session.FatalCount})]{sessionId}.txt";
+                            string newFileName = $@"{_outputPathLogs}\[{session.StartTime}]-[{session.EndTime}][ERROR({session.ErrorCount})][FATAL({session.FatalCount})] {sessionId}.txt";
                             if(File.Exists(newFileName))
                             {
                                 File.Delete(newFileName);
                             }
 
                             File.Move(session.FileName, newFileName);
+                        }
+                    }
+
+                    foreach (var errorPair in _errorDic)
+                    {
+                        var errOperation = errorPair.Key;
+                        var error = errorPair.Value;
+                        if (error.Writer != null)
+                        {
+                            error.Writer.Close();
+                            string newFileName = $@"{_outputPathErrors}\[{errOperation}] [{error.StartTime}]-[{error.EndTime}][ERROR({error.ErrorCount})].txt";
+                            if (File.Exists(newFileName))
+                            {
+                                File.Delete(newFileName);
+                            }
+
+                            File.Move(error.FileName, newFileName);
                         }
                     }
 
@@ -146,20 +266,12 @@ namespace MosaicPosLogTool
 
         }
 
-        public string CurrentLine
-        {
-            get { return _currentLine; }
-        }
-
-        public IList<string> LogFiles
-        {
-            get { return _logFiles; }
-        }
-
-        public string ProcessLine()
+        private Tuple<string, ErrorOperationEnum?> ProcessLine()
         {
             string sessionId = null;
-            if(_currentLine != null)
+            ErrorOperationEnum? errorOperation = null;
+
+            if (_currentLine != null)
             {
                 //if (_currentLine.Contains(@"2052539ms [             62] 2018-11-21 09:51:21,533 [ERROR] Raymark.EpaymentModule.Epayment => GetMainData - string responseStr"))
                 //{
@@ -169,12 +281,35 @@ namespace MosaicPosLogTool
                 int? threadId = null;
                 bool foundSessionId = false;
                 string timeStamp = string.Empty;
-                string operation = null;
+                string operationName = null;
                 bool isError = false;
                 bool isFatal = false;
                 int operationInsertIndex = 60;
 
-                Match match = Regex.Match(_currentLine, @"\[SessionId\]=([^;]+);", RegexOptions.IgnoreCase);
+                Match match = Regex.Match(_currentLine, @"\[\s*\d+\] (.+) \[(INFO |ERROR|DEBUG|WARN |FATAL)\]", RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    timeStamp = match.Groups[1].Value.Replace(':', '.');
+
+                    if(!ValidateTime(timeStamp))
+                    {
+                        return new Tuple<string, ErrorOperationEnum?>(null, null);
+                    }
+
+
+                    if (match.Groups[2].Value == "ERROR")
+                    {
+                        isError = true;
+                    }
+                    else if (match.Groups[2].Value == "FATAL")
+                    {
+                        isFatal = true;
+                    }
+
+                    operationInsertIndex = _currentLine.IndexOf(match.Groups[0].Value) + match.Groups[0].Value.Length + 1;
+                }
+
+                match = Regex.Match(_currentLine, @"\[SessionId\]=([^;]+);", RegexOptions.IgnoreCase);
                 if(match.Success)
                 {
                     sessionId = match.Groups[1].Value;
@@ -196,58 +331,46 @@ namespace MosaicPosLogTool
                     threadId = Convert.ToInt32(match.Groups[1].Value);
                 }
 
-                match = Regex.Match(_currentLine, @"\[\s*\d+\] (.+) \[(INFO |ERROR|DEBUG|WARN |FATAL)\]", RegexOptions.IgnoreCase);
-                if(match.Success)
-                {
-                    timeStamp = match.Groups[1].Value.Replace(':', '.');
-
-                    if(match.Groups[2].Value == "ERROR")
-                    {
-                        isError = true;
-                    }
-                    else if(match.Groups[2].Value == "FATAL")
-                    {
-                        isFatal = true;
-                    }
-
-                    operationInsertIndex = _currentLine.IndexOf(match.Groups[0].Value) + match.Groups[0].Value.Length + 1;
-                }
-
                 match = Regex.Match(_currentLine, @"\[Operation\]=([^;]+);", RegexOptions.IgnoreCase);
                 if(match.Success)
                 {
-                    operation = match.Groups[1].Value;
+                    operationName = match.Groups[1].Value;
                 }
                 else
                 {
                     match = Regex.Match(_currentLine, @"<Operation>=([^;]+);", RegexOptions.IgnoreCase);
                     if(match.Success)
                     {
-                        operation = match.Groups[1].Value;
+                        operationName = match.Groups[1].Value;
                     }
                     else
                     {
                         match = Regex.Match(_currentLine, @"\[Operation\]([^,]+),", RegexOptions.IgnoreCase);
                         if(match.Success)
                         {
-                            operation = match.Groups[1].Value;
+                            operationName = match.Groups[1].Value;
                         }
                         else
                         {
                             match = Regex.Match(_currentLine, @"Operation=([^,]+),", RegexOptions.IgnoreCase);
                             if(match.Success)
                             {
-                                operation = match.Groups[1].Value;
+                                operationName = match.Groups[1].Value;
                             }
                         }
                     }
                 }
 
+                if (_enableAnalysis && (isError || isFatal))
+                {
+                    errorOperation = ProcessError(operationName, timeStamp);
+                }
+
                 // Update line inserting Operaton column
-                if(operation != null && timeStamp != string.Empty)
+                if(operationName != null && timeStamp != string.Empty)
                 {
                     // Max operation length is 46
-                    _currentLine = _currentLine.Substring(0, operationInsertIndex) + $"[  {operation.PadRight(30)} ] " + _currentLine.Substring(operationInsertIndex);
+                    _currentLine = _currentLine.Substring(0, operationInsertIndex) + $"[  {operationName.PadRight(30)} ] " + _currentLine.Substring(operationInsertIndex);
                 }
 
                 // Update sessionId Dictionary
@@ -335,19 +458,96 @@ namespace MosaicPosLogTool
                 }
             }
 
-            return sessionId;
+            return new Tuple<string, ErrorOperationEnum?>(sessionId, errorOperation);
         }
 
-        public void WriteLine(string sessionId)
+        private bool ValidateTime(string timeStamp)
+        {
+            bool isTimeValid = true;
+
+            DateTime time;
+            if(DateTime.TryParseExact(timeStamp, "yyyy-MM-dd hh.mm.ss,fff", CultureInfo.InvariantCulture, DateTimeStyles.None, out time))
+            {
+                if(time < _startTime || time > _endTime)
+                {
+                    isTimeValid = false;
+                }
+            }
+
+            return isTimeValid;
+        }
+
+        private ErrorOperationEnum? ProcessError(string operationName, string timeStamp)
+        {
+            ErrorOperationEnum? errorOperation = null;
+            foreach (KeyValuePair<ErrorOperationEnum, ErrorData> errorPair in _errorDic)
+            {
+                if (errorOperation == null)
+                {
+                    foreach (string searchKey in errorPair.Value.SearchKeys)
+                    {
+                        if (_currentLine.Contains(searchKey))
+                        {
+                            errorOperation = errorPair.Key;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (errorOperation == null)
+            {
+                foreach (ErrorOperationEnum errOperation in Enum.GetValues(typeof(ErrorOperationEnum)))
+                {
+                    if (operationName != null &&
+                        (operationName.Equals(errOperation.ToString(), StringComparison.OrdinalIgnoreCase)
+                        || operationName.StartsWith("AddPayment")))
+                    {
+                        errorOperation = ErrorOperationEnum.Redundant;
+                        break;
+                    }
+                }
+            }
+
+            if(errorOperation == null)
+            {
+                errorOperation = ErrorOperationEnum.Others;
+            }
+
+            var error = _errorDic[errorOperation.Value];
+
+            error.ErrorCount++;
+            if (error.StartTime == null)
+            {
+                error.StartTime = timeStamp;
+            }
+            error.EndTime = timeStamp;
+
+            return errorOperation;
+        }
+
+        private void WriteLine(string sessionId, ErrorOperationEnum? errorOperation = null)
         {
             var session = _sessionDic[sessionId];
             if(session.Writer == null)
             {
-                session.FileName = $@"{_outputPath}\{sessionId}";
+                session.FileName = $@"{_outputPathLogs}\{sessionId}";
                 session.Writer = new StreamWriter(session.FileName, true);
             }
 
             session.Writer.WriteLine(_currentLine);
+
+            if(errorOperation != null)
+            {
+                var error = _errorDic[errorOperation.Value];
+                if(error.Writer == null)
+                {
+                    error.FileName = $@"{_outputPathErrors}\{errorOperation.Value.ToString()}";
+                    error.Writer = new StreamWriter(error.FileName, true);
+                }
+
+                error.Writer.WriteLine($"{_currentLine} [{sessionId}]");
+            }
         }
     }
 }
