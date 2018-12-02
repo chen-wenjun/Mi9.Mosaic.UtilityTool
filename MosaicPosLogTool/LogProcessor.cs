@@ -27,6 +27,7 @@ namespace MosaicPosLogTool
         private Dictionary<ErrorOperationEnum, ErrorData> _errorDic;
         private DateTime _startTime;
         private DateTime _endTime;
+        private Dictionary<string, int> _errorCountDic;
 
 
         public LogProcessor(IProgress<ProgressReportModel> progress, CancellationToken cancellationToken, bool enableAnalysis, DateTime startTime, DateTime endTime)
@@ -35,6 +36,7 @@ namespace MosaicPosLogTool
             _sessionDic = new Dictionary<string, SessionData>();
             _threadDic = new Dictionary<int, string>();
             _errorDic = new Dictionary<ErrorOperationEnum, ErrorData>();
+            _errorCountDic = new Dictionary<string, int>();
             _outputPathLogs = Environment.CurrentDirectory + @"\Logs";
             _outputPathErrors = Environment.CurrentDirectory + @"\Errors";
             _progress = progress;
@@ -72,6 +74,13 @@ namespace MosaicPosLogTool
                     {
                     }
                 });
+                _errorDic.Add(ErrorOperationEnum.CommunicationException, new ErrorData
+                {
+                    SearchKeys = new List<string>
+                    {
+                        @"System.ServiceModel.CommunicationException"
+                    }
+                });
                 _errorDic.Add(ErrorOperationEnum.AddPaymentX, new ErrorData
                 {
                     SearchKeys = new List<string>
@@ -84,6 +93,13 @@ namespace MosaicPosLogTool
                     SearchKeys = new List<string>
                     {
                         @"[ERROR] Raymark.Web.POSService.ExceptionManager => ThrowPosFaultException - [PosFaultType]TransactionFault, [Operation]GetCurrentTransaction,"
+                    }
+                });
+                _errorDic.Add(ErrorOperationEnum.GetCustomerList, new ErrorData
+                {
+                    SearchKeys = new List<string>
+                    {
+                        @"[ERROR] Raymark.Web.POSService.ExceptionManager => ThrowFaultException - [Operation]GetCustomerList,"
                     }
                 });
                 _errorDic.Add(ErrorOperationEnum.GetPasswordPolicy, new ErrorData
@@ -106,7 +122,8 @@ namespace MosaicPosLogTool
                     SearchKeys = new List<string>
                     {
                         @"[FATAL] Raymark.Entities.Transaction => SaveFinal - [Operation]Transaction->SaveFinal(),",
-                        @"[FATAL] Raymark.Entities.Transaction => Void - [Operation]Transaction->Void(),"
+                        @"[FATAL] Raymark.Entities.Transaction => Void - [Operation]Transaction->Void(),",
+                        @"[ERROR] Raymark.Web.POSService.ExceptionManager => ThrowPosFaultException - [PosFaultType]TransactionFault, [Operation]SaveTransaction, [Code]NotCompleteTransactionForGenerateBarcode,"
                     }
                 });
                 _errorDic.Add(ErrorOperationEnum.ScanItem, new ErrorData
@@ -174,9 +191,9 @@ namespace MosaicPosLogTool
 
                 try
                 {
-                    foreach(var logFile in _logFiles)
+                    foreach (var logFile in _logFiles)
                     {
-                        if(File.Exists(logFile))
+                        if (File.Exists(logFile))
                         {
                             report.ReportType = ProgressReportTypeEnum.CurrentFile;
                             report.CurrentProcessingFile = logFile;
@@ -184,16 +201,16 @@ namespace MosaicPosLogTool
 
                             Stopwatch watch = Stopwatch.StartNew();
 
-                            using ( var reader = new StreamReader(logFile))
+                            using (var reader = new StreamReader(logFile))
                             {
                                 _currentLine = reader.ReadLine();
                                 int lineNumber = 1;
-                       
-                                while(_currentLine != null)
+
+                                while (_currentLine != null)
                                 {
                                     _cancellationToken.ThrowIfCancellationRequested();
 
-                                    if(lineNumber % 1000 == 0)
+                                    if (lineNumber % 1000 == 0)
                                     {
                                         report.ReportType = ProgressReportTypeEnum.CurrentLineNumber;
                                         report.CurrentProcessingFileLineNumber = lineNumber;
@@ -221,15 +238,15 @@ namespace MosaicPosLogTool
                 }
                 finally
                 {
-                    foreach(var sessionPair in _sessionDic)
+                    foreach (var sessionPair in _sessionDic)
                     {
                         var sessionId = sessionPair.Key;
                         var session = sessionPair.Value;
-                        if(session.Writer != null)
+                        if (session.Writer != null)
                         {
                             session.Writer.Close();
                             string newFileName = $@"{_outputPathLogs}\[{session.StartTime}]-[{session.EndTime}][ERROR({session.ErrorCount})][FATAL({session.FatalCount})] {sessionId}.txt";
-                            if(File.Exists(newFileName))
+                            if (File.Exists(newFileName))
                             {
                                 File.Delete(newFileName);
                             }
@@ -252,6 +269,23 @@ namespace MosaicPosLogTool
                             }
 
                             File.Move(error.FileName, newFileName);
+                        }
+                    }
+
+                    if (_errorCountDic.Count > 0)
+                    {
+                        string fileName = $@"{_outputPathErrors}\ErrorCount.txt";
+                        if(File.Exists(fileName))
+                        {
+                            File.Delete(fileName);
+                        }
+
+                        using (var writer = new StreamWriter(fileName, true))
+                        {
+                            foreach(var pair in _errorCountDic.OrderByDescending(e => e.Value))
+                            {
+                                writer.WriteLine($"{pair.Key}: {pair.Value}");
+                            }
                         }
                     }
 
@@ -522,6 +556,44 @@ namespace MosaicPosLogTool
                 error.StartTime = timeStamp;
             }
             error.EndTime = timeStamp;
+
+            // Add error count
+            var keys = new List<string>();
+
+            var searchStrings = new List<string>
+            {
+                @"System.ServiceModel.CommunicationException",
+                @"System.Data.SqlClient.SqlException (0x80131904): Execution Timeout Expired",
+                @"System.Data.SqlClient.SqlException",
+                @"Exception from 24 hours fitness"
+            };
+
+            foreach(string str in searchStrings)
+            {
+                if(_currentLine.Contains(str))
+                {
+                    keys.Add(str);
+                }
+            }
+
+            if (operationName != null)
+            {
+                keys.Add(operationName);
+            }
+
+            foreach (string key in keys)
+            {
+                if(_errorCountDic.ContainsKey(key))
+                {
+                    _errorCountDic[key]++;
+                }
+                else
+                {
+                    _errorCountDic.Add(key, 1);
+                }
+            }
+
+
 
             return errorOperation;
         }

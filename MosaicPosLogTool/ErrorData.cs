@@ -21,8 +21,10 @@ namespace MosaicPosLogTool
     {
         Redundant,
         Others,
+        CommunicationException,
         AddPaymentX,
         GetCurrentTransaction,
+        GetCustomerList,
         GetPasswordPolicy,
         LogoutOperator,
         SaveTransaction,
