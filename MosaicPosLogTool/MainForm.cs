@@ -65,7 +65,7 @@ namespace MosaicPosLogTool
             if(e.ReportType == ProgressReportTypeEnum.FileList)
             {
                 filesLBox.Items.Clear();
-                filesLBox.Items.AddRange(e.LogFiles.Select(f => $"{f.Name} ( {f.Length}Bytes )").ToArray());
+                filesLBox.Items.AddRange(e.LogFiles.Select(f => $"{f.Name} ( {f.Length.ToString("n0")} Bytes )").ToArray());
 
                 foreach(var file in e.LogFiles)
                 {
@@ -76,7 +76,7 @@ namespace MosaicPosLogTool
             }
             else if(e.ReportType == ProgressReportTypeEnum.CurrentFile)
             {
-                detailLBox.Items.Add($"Processing File: {e.CurrentProcessingFile.Name} ( {e.CurrentProcessingFile.Length}Bytes )");
+                detailLBox.Items.Add($"Processing File: {e.CurrentProcessingFile.Name} ( {e.CurrentProcessingFile.Length.ToString("n0")} Bytes )");
                 detailLBox.Items.Add($"Processing Line: {e.CurrentProcessingFileRunningLineNumber}");
 
                 _currentProcessingFileTotalBytes = e.CurrentProcessingFile.Length;
@@ -104,6 +104,7 @@ namespace MosaicPosLogTool
             {
                 detailLBox.Items.Add("===========================");
                 detailLBox.Items.Add($"Total Process Time: {e.TotalProcessTime}");
+                detailLBox.Items.Add("===========================");
             }
         }
 
