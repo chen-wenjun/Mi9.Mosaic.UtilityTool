@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,11 +9,13 @@ namespace MosaicPosLogTool
 {
     public class ProgressReportModel
     {
-        public string CurrentProcessingFile { get; set; }
-        public int CurrentProcessingFileIndex { get; set; }
-        public int CurrentProcessingFileLineCount { get; set; }
-        public int CurrentProcessingFileLineNumber { get; set; }
-        public List<string> LogFiles { get; set; }
+        public FileInfo CurrentProcessingFile { get; set; }
+        //public int CurrentProcessingFileIndex { get; set; }
+        //public int CurrentProcessingFileLineCount { get; set; }
+        public int CurrentProcessingFileRunningLineNumber { get; set; }
+        public long CurrentProcessingFileRuningBytes { get; set; }
+        public long CurrentProcessingFileTotalRuningBytes { get; set; }
+        public List<FileInfo> LogFiles { get; set; }
         public string CurrentFileProcessTime { get; set; }
         public string TotalProcessTime { get; set; }
         public ProgressReportTypeEnum ReportType { get; set; }
@@ -22,7 +25,7 @@ namespace MosaicPosLogTool
     {
         FileList,
         CurrentFile,
-        CurrentLineNumber,
+        CurrentLine,
         CurrentFileProcessTime,
         TotalProcessTime
     }

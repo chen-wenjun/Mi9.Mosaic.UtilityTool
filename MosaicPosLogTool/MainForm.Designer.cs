@@ -43,6 +43,10 @@
             this.endDateTimePicker = new System.Windows.Forms.DateTimePicker();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.currentProgressBar = new System.Windows.Forms.ProgressBar();
+            this.totalProgressBar = new System.Windows.Forms.ProgressBar();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // processLogFilesBtn
@@ -85,7 +89,7 @@
             this.filesLBox.FormattingEnabled = true;
             this.filesLBox.HorizontalScrollbar = true;
             this.filesLBox.ItemHeight = 16;
-            this.filesLBox.Location = new System.Drawing.Point(8, 178);
+            this.filesLBox.Location = new System.Drawing.Point(8, 258);
             this.filesLBox.Name = "filesLBox";
             this.filesLBox.Size = new System.Drawing.Size(725, 100);
             this.filesLBox.TabIndex = 3;
@@ -93,7 +97,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(5, 158);
+            this.label1.Location = new System.Drawing.Point(5, 238);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(171, 17);
             this.label1.TabIndex = 4;
@@ -102,7 +106,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(5, 293);
+            this.label2.Location = new System.Drawing.Point(5, 373);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(110, 17);
             this.label2.TabIndex = 5;
@@ -115,16 +119,16 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.detailLBox.FormattingEnabled = true;
             this.detailLBox.ItemHeight = 16;
-            this.detailLBox.Location = new System.Drawing.Point(8, 313);
+            this.detailLBox.Location = new System.Drawing.Point(8, 393);
             this.detailLBox.Name = "detailLBox";
-            this.detailLBox.Size = new System.Drawing.Size(725, 196);
+            this.detailLBox.Size = new System.Drawing.Size(725, 148);
             this.detailLBox.TabIndex = 6;
             // 
             // cancelProcessBtn
             // 
             this.cancelProcessBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.cancelProcessBtn.Location = new System.Drawing.Point(8, 516);
+            this.cancelProcessBtn.Location = new System.Drawing.Point(8, 588);
             this.cancelProcessBtn.Name = "cancelProcessBtn";
             this.cancelProcessBtn.Size = new System.Drawing.Size(725, 32);
             this.cancelProcessBtn.TabIndex = 7;
@@ -136,7 +140,7 @@
             // 
             this.clearBoxBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.clearBoxBtn.Location = new System.Drawing.Point(8, 554);
+            this.clearBoxBtn.Location = new System.Drawing.Point(8, 626);
             this.clearBoxBtn.Name = "clearBoxBtn";
             this.clearBoxBtn.Size = new System.Drawing.Size(725, 32);
             this.clearBoxBtn.TabIndex = 8;
@@ -199,11 +203,53 @@
             this.label4.TabIndex = 13;
             this.label4.Text = "End Time:";
             // 
+            // currentProgressBar
+            // 
+            this.currentProgressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.currentProgressBar.Location = new System.Drawing.Point(131, 154);
+            this.currentProgressBar.Name = "currentProgressBar";
+            this.currentProgressBar.Size = new System.Drawing.Size(601, 23);
+            this.currentProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.currentProgressBar.TabIndex = 14;
+            // 
+            // totalProgressBar
+            // 
+            this.totalProgressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.totalProgressBar.Location = new System.Drawing.Point(131, 183);
+            this.totalProgressBar.Name = "totalProgressBar";
+            this.totalProgressBar.Size = new System.Drawing.Size(601, 23);
+            this.totalProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.totalProgressBar.TabIndex = 15;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(5, 189);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(105, 17);
+            this.label5.TabIndex = 16;
+            this.label5.Text = "Total Progress:";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(5, 160);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(120, 17);
+            this.label6.TabIndex = 17;
+            this.label6.Text = "Current Progress:";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(740, 591);
+            this.ClientSize = new System.Drawing.Size(740, 663);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.totalProgressBar);
+            this.Controls.Add(this.currentProgressBar);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.endDateTimePicker);
@@ -244,6 +290,10 @@
         private System.Windows.Forms.DateTimePicker endDateTimePicker;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.ProgressBar currentProgressBar;
+        private System.Windows.Forms.ProgressBar totalProgressBar;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
     }
 }
 

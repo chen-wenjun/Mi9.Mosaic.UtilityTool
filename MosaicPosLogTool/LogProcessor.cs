@@ -15,7 +15,7 @@ namespace MosaicPosLogTool
     public class LogProcessor : ILogProcessor
     {
         private string _currentLine;
-        private List<string> _logFiles;
+        private List<FileInfo> _logFiles;
         private Dictionary<string, SessionData> _sessionDic;
         private Dictionary<int, string> _threadDic;
         private int? _lastThreadId;
@@ -28,11 +28,12 @@ namespace MosaicPosLogTool
         private DateTime _startTime;
         private DateTime _endTime;
         private Dictionary<string, int> _errorCountDic;
+        private long _runningFileBytes;
 
 
         public LogProcessor(IProgress<ProgressReportModel> progress, CancellationToken cancellationToken, bool enableAnalysis, DateTime startTime, DateTime endTime)
         {
-            _logFiles = new List<string>();
+            _logFiles = new List<FileInfo>();
             _sessionDic = new Dictionary<string, SessionData>();
             _threadDic = new Dictionary<int, string>();
             _errorDic = new Dictionary<ErrorOperationEnum, ErrorData>();
@@ -44,6 +45,7 @@ namespace MosaicPosLogTool
             _enableAnalysis = enableAnalysis;
             _startTime = startTime;
             _endTime = endTime;
+            _runningFileBytes = 0L;
 
             Init();
         }
@@ -53,7 +55,7 @@ namespace MosaicPosLogTool
             get { return _currentLine; }
         }
 
-        public IList<string> LogFiles
+        public IList<FileInfo> LogFiles
         {
             get { return _logFiles; }
         }
@@ -172,7 +174,6 @@ namespace MosaicPosLogTool
             var dirInfo = new DirectoryInfo(path);
             _logFiles = dirInfo.EnumerateFiles("*.txt.*")
                                 .OrderBy(f => f.LastWriteTime)
-                                .Select(f => f.FullName)
                                 .ToList();
 
             ProgressReportModel report = new ProgressReportModel();
@@ -185,36 +186,49 @@ namespace MosaicPosLogTool
         {
             await Task.Run(() =>
             {
-                ProgressReportModel report = new ProgressReportModel();
+                //ProgressReportModel report = new ProgressReportModel();
 
                 Stopwatch watchTotal = Stopwatch.StartNew();
 
                 try
                 {
+                    FileInfo previousFile = null;
                     foreach (var logFile in _logFiles)
                     {
-                        if (File.Exists(logFile))
+                        if (File.Exists(logFile.FullName))
                         {
-                            report.ReportType = ProgressReportTypeEnum.CurrentFile;
-                            report.CurrentProcessingFile = logFile;
-                            _progress.Report(report);
+                            if(previousFile != null)
+                            {
+                                _runningFileBytes += previousFile.Length;
+                            }
+
+                            previousFile = logFile;
+
+                            ProgressReportModel fileStartReport = new ProgressReportModel();
+                            fileStartReport.ReportType = ProgressReportTypeEnum.CurrentFile;
+                            fileStartReport.CurrentProcessingFile = logFile;
+                            _progress.Report(fileStartReport);
 
                             Stopwatch watch = Stopwatch.StartNew();
 
-                            using (var reader = new StreamReader(logFile))
+                            ProgressReportModel lineReport = new ProgressReportModel();
+                            using (var reader = new StreamReader(logFile.FullName))
                             {
                                 _currentLine = reader.ReadLine();
-                                int lineNumber = 1;
+                                int lineRunningNumber = 1;
+                                long lineRunningBytes = _currentLine != null ? _currentLine.Length : 0L;
 
                                 while (_currentLine != null)
                                 {
                                     _cancellationToken.ThrowIfCancellationRequested();
 
-                                    if (lineNumber % 1000 == 0)
+                                    if (lineRunningNumber % 1000 == 0)
                                     {
-                                        report.ReportType = ProgressReportTypeEnum.CurrentLineNumber;
-                                        report.CurrentProcessingFileLineNumber = lineNumber;
-                                        _progress.Report(report);
+                                        lineReport.ReportType = ProgressReportTypeEnum.CurrentLine;
+                                        lineReport.CurrentProcessingFileRunningLineNumber = lineRunningNumber;
+                                        lineReport.CurrentProcessingFileRuningBytes = lineRunningBytes;
+                                        lineReport.CurrentProcessingFileTotalRuningBytes = _runningFileBytes + lineRunningBytes;
+                                        _progress.Report(lineReport);
                                     }
 
                                     Tuple<string, ErrorOperationEnum?> result = ProcessLine();
@@ -224,15 +238,17 @@ namespace MosaicPosLogTool
                                     }
 
                                     _currentLine = reader.ReadLine();
-                                    lineNumber++;
+                                    lineRunningNumber++;
+                                    lineRunningBytes += _currentLine != null ? _currentLine.Length : 0L;
                                 }
                             }
 
                             watch.Stop();
 
-                            report.ReportType = ProgressReportTypeEnum.CurrentFileProcessTime;
-                            report.CurrentFileProcessTime = watch.Elapsed.ToString();
-                            _progress.Report(report);
+                            ProgressReportModel fileEndReport = new ProgressReportModel();
+                            fileEndReport.ReportType = ProgressReportTypeEnum.CurrentFileProcessTime;
+                            fileEndReport.CurrentFileProcessTime = watch.Elapsed.ToString();
+                            _progress.Report(fileEndReport);
                         }
                     }
                 }
@@ -291,6 +307,7 @@ namespace MosaicPosLogTool
 
                     watchTotal.Stop();
 
+                    ProgressReportModel report = new ProgressReportModel();
                     report.ReportType = ProgressReportTypeEnum.TotalProcessTime;
                     report.TotalProcessTime = watchTotal.Elapsed.ToString();
                     _progress.Report(report);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,7 +14,10 @@ namespace MosaicPosLogTool
 {
     public partial class MainForm : Form
     {
-        CancellationTokenSource cancellationTokenSource;
+        CancellationTokenSource _cancellationTokenSource;
+        long _currentProcessingFileTotalBytes = 0L;
+        long _allProcessingFilesTotalBytes = 0L;
+
         public MainForm()
         {
             InitializeComponent();
@@ -24,9 +28,9 @@ namespace MosaicPosLogTool
             var progress = new Progress<ProgressReportModel>();
             progress.ProgressChanged += Progress_ProgressChanged;
 
-            cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource = new CancellationTokenSource();
             
-            var logProcessor = new LogProcessor(progress, cancellationTokenSource.Token, enableAnalysisCBox.Checked, 
+            var logProcessor = new LogProcessor(progress, _cancellationTokenSource.Token, enableAnalysisCBox.Checked, 
                 startDateTimePicker.Checked ? startDateTimePicker.Value : DateTime.MinValue, 
                 endDateTimePicker.Checked ? endDateTimePicker.Value : DateTime.MaxValue);
 
@@ -48,6 +52,10 @@ namespace MosaicPosLogTool
                 processLogFilesBtn.Enabled = true;
                 clearBoxBtn.Enabled = true;
                 cancelProcessBtn.Enabled = false;
+                currentProgressBar.Value = 0;
+                totalProgressBar.Value = 0;
+                _currentProcessingFileTotalBytes = 0L;
+                _allProcessingFilesTotalBytes = 0L;
             }
 
         }
@@ -57,24 +65,45 @@ namespace MosaicPosLogTool
             if(e.ReportType == ProgressReportTypeEnum.FileList)
             {
                 filesLBox.Items.Clear();
-                filesLBox.Items.AddRange(e.LogFiles.ToArray());
+                filesLBox.Items.AddRange(e.LogFiles.Select(f => $"{f.Name} ( {f.Length}Bytes )").ToArray());
+
+                foreach(var file in e.LogFiles)
+                {
+                    _allProcessingFilesTotalBytes += file.Length;
+                }
+
+                totalProgressBar.Value = 1;
             }
             else if(e.ReportType == ProgressReportTypeEnum.CurrentFile)
             {
-                detailLBox.Items.Add($"Processing File: {e.CurrentProcessingFile}");
-                detailLBox.Items.Add($"Processing Line: {e.CurrentProcessingFileLineNumber}");
+                detailLBox.Items.Add($"Processing File: {e.CurrentProcessingFile.Name} ( {e.CurrentProcessingFile.Length}Bytes )");
+                detailLBox.Items.Add($"Processing Line: {e.CurrentProcessingFileRunningLineNumber}");
+
+                _currentProcessingFileTotalBytes = e.CurrentProcessingFile.Length;
+                currentProgressBar.Value = 1;
             }
-            else if(e.ReportType == ProgressReportTypeEnum.CurrentLineNumber)
+            else if(e.ReportType == ProgressReportTypeEnum.CurrentLine)
             {
-                detailLBox.Items[detailLBox.Items.Count- 1] = $"Processing Line: {e.CurrentProcessingFileLineNumber}";
+                detailLBox.Items[detailLBox.Items.Count- 1] = $"Processing Line: {e.CurrentProcessingFileRunningLineNumber}";
+
+                int value = e.CurrentProcessingFileRuningBytes <= _currentProcessingFileTotalBytes ?
+                                (int)(e.CurrentProcessingFileRuningBytes * 100L / _currentProcessingFileTotalBytes) : 100;
+                currentProgressBar.Value = value;
+
+                int totalValue = e.CurrentProcessingFileTotalRuningBytes <= _allProcessingFilesTotalBytes ?
+                                (int)(e.CurrentProcessingFileTotalRuningBytes * 100L / _allProcessingFilesTotalBytes) : 100;
+                totalProgressBar.Value = totalValue;
+
             }
             else if(e.ReportType == ProgressReportTypeEnum.CurrentFileProcessTime)
             {
-                detailLBox.Items.Add($"Process Time for the file: {e.CurrentFileProcessTime}");
+                detailLBox.Items.Add($"Process Time: {e.CurrentFileProcessTime}");
+                detailLBox.Items.Add("---------------------------");
             }
             else if(e.ReportType == ProgressReportTypeEnum.TotalProcessTime)
             {
-                detailLBox.Items.Add($"Total Process Time for all the files: {e.TotalProcessTime}");
+                detailLBox.Items.Add("===========================");
+                detailLBox.Items.Add($"Total Process Time: {e.TotalProcessTime}");
             }
         }
 
@@ -100,9 +129,9 @@ namespace MosaicPosLogTool
 
         private void cancelProcessBtn_Click(object sender, EventArgs e)
         {
-            if(cancellationTokenSource != null)
+            if(_cancellationTokenSource != null)
             {
-                cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Cancel();
             }
         }
 
