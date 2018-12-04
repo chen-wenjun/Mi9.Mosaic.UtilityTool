@@ -54,6 +54,8 @@ namespace MosaicPosLogTool
                 cancelProcessBtn.Enabled = false;
                 currentProgressBar.Value = 0;
                 totalProgressBar.Value = 0;
+                currentProgressLabel.Text = "";
+                totalProgressLabel.Text = "";
                 _currentProcessingFileTotalBytes = 0L;
                 _allProcessingFilesTotalBytes = 0L;
             }
@@ -73,18 +75,21 @@ namespace MosaicPosLogTool
                 }
 
                 totalProgressBar.Value = 1;
+                totalProgressLabel.Text = "Loaded files";
             }
             else if(e.ReportType == ProgressReportTypeEnum.CurrentFile)
             {
                 detailLBox.Items.Add($"Processing File: {e.CurrentProcessingFile.Name} ( {e.CurrentProcessingFile.Length.ToString("n0")} Bytes )");
                 detailLBox.Items.Add($"Processing Line: {e.CurrentProcessingFileRunningLineNumber}");
+                totalProgressLabel.Text = $"Processing File: {e.CurrentProcessingFile.Name} ( {e.CurrentProcessingFile.Length.ToString("n0")} Bytes )";
 
                 _currentProcessingFileTotalBytes = e.CurrentProcessingFile.Length;
                 currentProgressBar.Value = 1;
             }
             else if(e.ReportType == ProgressReportTypeEnum.CurrentLine)
             {
-                detailLBox.Items[detailLBox.Items.Count- 1] = $"Processing Line: {e.CurrentProcessingFileRunningLineNumber}";
+                detailLBox.Items[detailLBox.Items.Count- 1] = $"Processing Line: {e.CurrentProcessingFileRunningLineNumber.ToString("n0")}";
+                currentProgressLabel.Text = $"Processing Line: {e.CurrentProcessingFileRunningLineNumber.ToString("n0")}";
 
                 int value = e.CurrentProcessingFileRuningBytes <= _currentProcessingFileTotalBytes ?
                                 (int)(e.CurrentProcessingFileRuningBytes * 100L / _currentProcessingFileTotalBytes) : 100;
@@ -106,6 +111,15 @@ namespace MosaicPosLogTool
                 detailLBox.Items.Add($"Total Process Time: {e.TotalProcessTime}");
                 detailLBox.Items.Add("===========================");
             }
+            else if(e.ReportType == ProgressReportTypeEnum.ClosingFiles)
+            {
+                totalProgressLabel.Text = "Closing All session Files...";
+            }
+            else if(e.ReportType == ProgressReportTypeEnum.ClosingCurrentFile)
+            {
+                currentProgressBar.Value = e.ClosingFilesProgress[0] * 100 / e.ClosingFilesProgress[1];
+                currentProgressLabel.Text = $"Closing session file: {e.ClosingFilesProgress[0]} / {e.ClosingFilesProgress[1]}";
+            }
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -116,6 +130,8 @@ namespace MosaicPosLogTool
             endDateTimePicker.Value = DateTime.Today.AddDays(1);
             startDateTimePicker.Checked = false;
             endDateTimePicker.Checked = false;
+            currentProgressLabel.Text = "";
+            totalProgressLabel.Text = "";
         }
 
         private void selectFolderBtn_Click(object sender, EventArgs e)

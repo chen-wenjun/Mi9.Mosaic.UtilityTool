@@ -254,6 +254,11 @@ namespace MosaicPosLogTool
                 }
                 finally
                 {
+                    ProgressReportModel closingFilesReport = new ProgressReportModel();
+                    closingFilesReport.ReportType = ProgressReportTypeEnum.ClosingFiles;
+                    _progress.Report(closingFilesReport);
+
+                    var currentClosingFileCount = 0;
                     foreach (var sessionPair in _sessionDic)
                     {
                         var sessionId = sessionPair.Key;
@@ -269,6 +274,13 @@ namespace MosaicPosLogTool
 
                             File.Move(session.FileName, newFileName);
                         }
+
+                        currentClosingFileCount++;
+                        ProgressReportModel closingCurrentFileReport = new ProgressReportModel();
+                        closingCurrentFileReport.ReportType = ProgressReportTypeEnum.ClosingCurrentFile;
+                        closingCurrentFileReport.ClosingFilesProgress = new int[] { currentClosingFileCount, _sessionDic.Count };
+                        _progress.Report(closingCurrentFileReport);
+
                     }
 
                     foreach (var errorPair in _errorDic)
@@ -307,10 +319,10 @@ namespace MosaicPosLogTool
 
                     watchTotal.Stop();
 
-                    ProgressReportModel report = new ProgressReportModel();
-                    report.ReportType = ProgressReportTypeEnum.TotalProcessTime;
-                    report.TotalProcessTime = watchTotal.Elapsed.ToString();
-                    _progress.Report(report);
+                    ProgressReportModel totalTimeReport = new ProgressReportModel();
+                    totalTimeReport.ReportType = ProgressReportTypeEnum.TotalProcessTime;
+                    totalTimeReport.TotalProcessTime = watchTotal.Elapsed.ToString();
+                    _progress.Report(totalTimeReport);
                 }
 
             });

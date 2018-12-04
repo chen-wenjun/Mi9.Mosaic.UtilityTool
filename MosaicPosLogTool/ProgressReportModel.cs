@@ -19,6 +19,7 @@ namespace MosaicPosLogTool
         public string CurrentFileProcessTime { get; set; }
         public string TotalProcessTime { get; set; }
         public ProgressReportTypeEnum ReportType { get; set; }
+        public int[] ClosingFilesProgress { get; set; }
     }
 
     public enum ProgressReportTypeEnum
@@ -27,6 +28,8 @@ namespace MosaicPosLogTool
         CurrentFile,
         CurrentLine,
         CurrentFileProcessTime,
-        TotalProcessTime
+        TotalProcessTime,
+        ClosingFiles,
+        ClosingCurrentFile
     }
 }
