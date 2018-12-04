@@ -370,14 +370,14 @@ namespace MosaicPosLogTool
 
                             writer.WriteLine("==============================================");
                             writer.WriteLine($"Total: {_saveTransactionOperations.Count.ToString("n0")} , Failed: {totalFailed.ToString("n0")}");
-                            writer.WriteLine("==============================================");
+                            writer.WriteLine("==Count per minute============================================");
 
                             foreach(var pair in minCountDic.OrderByDescending(e => e.Value))
                             {
                                 writer.WriteLine($"{pair.Key}: {pair.Value}");
                             }
 
-                            writer.WriteLine("==============================================");
+                            writer.WriteLine("==Count per second============================================");
 
                             foreach(var pair in secCountDic.OrderByDescending(e => e.Value))
                             {
