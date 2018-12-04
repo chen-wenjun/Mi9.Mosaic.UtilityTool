@@ -321,7 +321,7 @@ namespace MosaicPosLogTool
 
                     if(_saveTransactionOperations.Count > 0)
                     {
-                        string fileName = $@"{_outputPathErrors}\Analysis.txt";
+                        string fileName = $@"{_outputPathErrors}\Analysis(SaveTransaction).txt";
                         if(File.Exists(fileName))
                         {
                             File.Delete(fileName);
