@@ -22,6 +22,7 @@ namespace MosaicPosLogTool
         private string _outputPathLogs;
         private IProgress<ProgressReportModel> _progress;
         private CancellationToken _cancellationToken;
+        private bool _enableErrorCheck;
         private bool _enableAnalysis;
         private string _outputPathErrors;
         private Dictionary<ErrorOperationEnum, ErrorData> _errorDic;
@@ -29,19 +30,22 @@ namespace MosaicPosLogTool
         private DateTime _endTime;
         private Dictionary<string, int> _errorCountDic;
         private long _runningFileBytes;
+        private List<Operation> _saveTransactionOperations;
 
 
-        public LogProcessor(IProgress<ProgressReportModel> progress, CancellationToken cancellationToken, bool enableAnalysis, DateTime startTime, DateTime endTime)
+        public LogProcessor(IProgress<ProgressReportModel> progress, CancellationToken cancellationToken, bool enableErrorCheck, bool enableAnalysis, DateTime startTime, DateTime endTime)
         {
             _logFiles = new List<FileInfo>();
             _sessionDic = new Dictionary<string, SessionData>();
             _threadDic = new Dictionary<int, string>();
             _errorDic = new Dictionary<ErrorOperationEnum, ErrorData>();
             _errorCountDic = new Dictionary<string, int>();
+            _saveTransactionOperations = new List<Operation>();
             _outputPathLogs = Environment.CurrentDirectory + @"\Logs";
             _outputPathErrors = Environment.CurrentDirectory + @"\Errors";
             _progress = progress;
             _cancellationToken = cancellationToken;
+            _enableErrorCheck = enableErrorCheck;
             _enableAnalysis = enableAnalysis;
             _startTime = startTime;
             _endTime = endTime;
@@ -62,7 +66,7 @@ namespace MosaicPosLogTool
 
         private void Init()
         {
-            if(_enableAnalysis)
+            if(_enableErrorCheck)
             {
                 _errorDic.Add(ErrorOperationEnum.Redundant, new ErrorData
                 {
@@ -159,7 +163,7 @@ namespace MosaicPosLogTool
                 Directory.CreateDirectory(_outputPathLogs);
             }
 
-            if(_enableAnalysis)
+            if(_enableErrorCheck)
             {
                 if (!Directory.Exists(_outputPathErrors))
                 {
@@ -186,8 +190,6 @@ namespace MosaicPosLogTool
         {
             await Task.Run(() =>
             {
-                //ProgressReportModel report = new ProgressReportModel();
-
                 Stopwatch watchTotal = Stopwatch.StartNew();
 
                 try
@@ -317,6 +319,74 @@ namespace MosaicPosLogTool
                         }
                     }
 
+                    if(_saveTransactionOperations.Count > 0)
+                    {
+                        string fileName = $@"{_outputPathErrors}\Analysis.txt";
+                        if(File.Exists(fileName))
+                        {
+                            File.Delete(fileName);
+                        }
+
+                        var minCountDic = new Dictionary<string, int>();
+                        var secCountDic = new Dictionary<string, int>();
+                        int totalFailed = 0;
+
+                        using (var writer = new StreamWriter(fileName, true))
+                        {
+                            foreach(var operation in _saveTransactionOperations)
+                            {
+                                if(!operation.Successful)
+                                {
+                                    totalFailed++;
+                                }
+
+                                string min = operation.StartTime.Substring(0, 16);
+                                string sec = operation.StartTime.Substring(0, 19);
+                                if(minCountDic.ContainsKey(min))
+                                {
+                                    minCountDic[min]++;
+                                }
+                                else
+                                {
+                                    minCountDic.Add(min, 1);
+                                }
+
+                                if(secCountDic.ContainsKey(sec))
+                                {
+                                    secCountDic[sec]++;
+                                }
+                                else
+                                {
+                                    secCountDic.Add(sec, 1);
+                                }
+
+                                string status = operation.Successful ? "Succ" : "Fail";
+                                if(operation.EndTime == null)
+                                {
+                                    operation.EndTime = "null";
+                                }
+                                writer.WriteLine($"{operation.StartTime} - {operation.EndTime.PadLeft(23)} [{operation.Duration.ToString("n3").PadLeft(7)}] [{status}] {operation.SessionId}");
+                            }
+
+                            writer.WriteLine("==============================================");
+                            writer.WriteLine($"Total: {_saveTransactionOperations.Count.ToString("n0")} , Failed: {totalFailed.ToString("n0")}");
+                            writer.WriteLine("==============================================");
+
+                            foreach(var pair in minCountDic.OrderByDescending(e => e.Value))
+                            {
+                                writer.WriteLine($"{pair.Key}: {pair.Value}");
+                            }
+
+                            writer.WriteLine("==============================================");
+
+                            foreach(var pair in secCountDic.OrderByDescending(e => e.Value))
+                            {
+                                writer.WriteLine($"{pair.Key}: {pair.Value}");
+                            }
+                        }
+
+                    }
+
                     watchTotal.Stop();
 
                     ProgressReportModel totalTimeReport = new ProgressReportModel();
@@ -424,9 +494,14 @@ namespace MosaicPosLogTool
                     }
                 }
 
-                if (_enableAnalysis && (isError || isFatal))
+                if (_enableErrorCheck && (isError || isFatal))
                 {
                     errorOperation = ProcessError(operationName, timeStamp);
+                }
+
+                if(_enableAnalysis && !isError && !isFatal && sessionId != null && threadId != null && operationName != null && timeStamp != null)
+                {
+                    ProcessAnalysis(sessionId, threadId, operationName, timeStamp);
                 }
 
                 // Update line inserting Operaton column
@@ -538,6 +613,61 @@ namespace MosaicPosLogTool
             }
 
             return isTimeValid;
+        }
+
+        private double CalculateDuration(string startTime, string endTime)
+        {
+            double duration = -1;
+
+            DateTime sTime;
+            DateTime eTime;
+            if(DateTime.TryParseExact(startTime, "yyyy-MM-dd hh.mm.ss,fff", CultureInfo.InvariantCulture, DateTimeStyles.None, out sTime) &&
+                DateTime.TryParseExact(endTime, "yyyy-MM-dd hh.mm.ss,fff", CultureInfo.InvariantCulture, DateTimeStyles.None, out eTime))
+            {
+                duration = (eTime - sTime).TotalSeconds;
+            }
+
+            return duration;
+        }
+
+        private void ProcessAnalysis(string sessionId, int? threadId, string operationName, string timeStamp)
+        {
+            // save-transaction
+            if (operationName.Equals("save-transaction", StringComparison.OrdinalIgnoreCase))
+            {
+                if(_currentLine.Contains("AfterReceiveRequest - [Operation]=save-transaction;"))
+                {
+                    _saveTransactionOperations.Add(new Operation
+                    {
+                        SessionId = sessionId,
+                        ThreadId = threadId.Value,
+                        StartTime = timeStamp
+                    });
+
+                }
+                else if(_currentLine.Contains("BeforeSendReply - <Operation>=save-transaction;"))
+                {
+                    var operations = _saveTransactionOperations.Where(
+                                            e => e.SessionId == sessionId 
+                                            && e.ThreadId == threadId.Value 
+                                            && e.EndTime == null).ToList();
+
+                    for(int i = 0; i < operations.Count; i++)
+                    {
+                        if(i == 0)
+                        {
+                            operations[i].EndTime = timeStamp;
+                            operations[i].Duration = CalculateDuration(operations[i].StartTime, operations[i].EndTime);
+                            operations[i].Successful = _currentLine.Contains("<StatusCode>=200 OK");
+                        }
+                        else
+                        {
+                            operations[i].EndTime = "void";
+                        }
+                    }
+                }
+
+            }
         }
 
         private ErrorOperationEnum? ProcessError(string operationName, string timeStamp)

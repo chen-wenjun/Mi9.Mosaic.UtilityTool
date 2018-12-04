@@ -38,7 +38,7 @@
             this.detailLBox = new System.Windows.Forms.ListBox();
             this.cancelProcessBtn = new System.Windows.Forms.Button();
             this.clearBoxBtn = new System.Windows.Forms.Button();
-            this.enableAnalysisCBox = new System.Windows.Forms.CheckBox();
+            this.enableErrorCheckCBox = new System.Windows.Forms.CheckBox();
             this.startDateTimePicker = new System.Windows.Forms.DateTimePicker();
             this.endDateTimePicker = new System.Windows.Forms.DateTimePicker();
             this.label3 = new System.Windows.Forms.Label();
@@ -49,6 +49,7 @@
             this.label6 = new System.Windows.Forms.Label();
             this.currentProgressLabel = new System.Windows.Forms.Label();
             this.totalProgressLabel = new System.Windows.Forms.Label();
+            this.enableAnalysisCBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // processLogFilesBtn
@@ -150,17 +151,17 @@
             this.clearBoxBtn.UseVisualStyleBackColor = true;
             this.clearBoxBtn.Click += new System.EventHandler(this.clearBoxBtn_Click);
             // 
-            // enableAnalysisCBox
+            // enableErrorCheckCBox
             // 
-            this.enableAnalysisCBox.AutoSize = true;
-            this.enableAnalysisCBox.Checked = true;
-            this.enableAnalysisCBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.enableAnalysisCBox.Location = new System.Drawing.Point(8, 36);
-            this.enableAnalysisCBox.Name = "enableAnalysisCBox";
-            this.enableAnalysisCBox.Size = new System.Drawing.Size(130, 21);
-            this.enableAnalysisCBox.TabIndex = 9;
-            this.enableAnalysisCBox.Text = "Enable Analysis";
-            this.enableAnalysisCBox.UseVisualStyleBackColor = true;
+            this.enableErrorCheckCBox.AutoSize = true;
+            this.enableErrorCheckCBox.Checked = true;
+            this.enableErrorCheckCBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.enableErrorCheckCBox.Location = new System.Drawing.Point(8, 36);
+            this.enableErrorCheckCBox.Name = "enableErrorCheckCBox";
+            this.enableErrorCheckCBox.Size = new System.Drawing.Size(153, 21);
+            this.enableErrorCheckCBox.TabIndex = 9;
+            this.enableErrorCheckCBox.Text = "Enable Error Check";
+            this.enableErrorCheckCBox.UseVisualStyleBackColor = true;
             // 
             // startDateTimePicker
             // 
@@ -261,11 +262,24 @@
             this.totalProgressLabel.TabIndex = 19;
             this.totalProgressLabel.Text = "Processing File";
             // 
+            // enableAnalysisCBox
+            // 
+            this.enableAnalysisCBox.AutoSize = true;
+            this.enableAnalysisCBox.Checked = true;
+            this.enableAnalysisCBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.enableAnalysisCBox.Location = new System.Drawing.Point(173, 36);
+            this.enableAnalysisCBox.Name = "enableAnalysisCBox";
+            this.enableAnalysisCBox.Size = new System.Drawing.Size(130, 21);
+            this.enableAnalysisCBox.TabIndex = 20;
+            this.enableAnalysisCBox.Text = "Enable Analysis";
+            this.enableAnalysisCBox.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(740, 663);
+            this.Controls.Add(this.enableAnalysisCBox);
             this.Controls.Add(this.totalProgressLabel);
             this.Controls.Add(this.currentProgressLabel);
             this.Controls.Add(this.label6);
@@ -276,7 +290,7 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.endDateTimePicker);
             this.Controls.Add(this.startDateTimePicker);
-            this.Controls.Add(this.enableAnalysisCBox);
+            this.Controls.Add(this.enableErrorCheckCBox);
             this.Controls.Add(this.clearBoxBtn);
             this.Controls.Add(this.cancelProcessBtn);
             this.Controls.Add(this.detailLBox);
@@ -307,7 +321,7 @@
         private System.Windows.Forms.ListBox detailLBox;
         private System.Windows.Forms.Button cancelProcessBtn;
         private System.Windows.Forms.Button clearBoxBtn;
-        private System.Windows.Forms.CheckBox enableAnalysisCBox;
+        private System.Windows.Forms.CheckBox enableErrorCheckCBox;
         private System.Windows.Forms.DateTimePicker startDateTimePicker;
         private System.Windows.Forms.DateTimePicker endDateTimePicker;
         private System.Windows.Forms.Label label3;
@@ -318,6 +332,7 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label currentProgressLabel;
         private System.Windows.Forms.Label totalProgressLabel;
+        private System.Windows.Forms.CheckBox enableAnalysisCBox;
     }
 }
 

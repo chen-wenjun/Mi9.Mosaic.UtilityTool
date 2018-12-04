@@ -30,7 +30,8 @@ namespace MosaicPosLogTool
 
             _cancellationTokenSource = new CancellationTokenSource();
             
-            var logProcessor = new LogProcessor(progress, _cancellationTokenSource.Token, enableAnalysisCBox.Checked, 
+            var logProcessor = new LogProcessor(progress, _cancellationTokenSource.Token, 
+                enableErrorCheckCBox.Checked, enableAnalysisCBox.Checked,
                 startDateTimePicker.Checked ? startDateTimePicker.Value : DateTime.MinValue, 
                 endDateTimePicker.Checked ? endDateTimePicker.Value : DateTime.MaxValue);
 
