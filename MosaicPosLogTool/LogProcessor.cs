@@ -442,7 +442,7 @@ namespace MosaicPosLogTool
 
             if (_currentLine != null)
             {
-                //if (_currentLine.Contains(@"2052539ms [             62] 2018-11-21 09:51:21,533 [ERROR] Raymark.EpaymentModule.Epayment => GetMainData - string responseStr"))
+                //if (_currentLine.Contains(@"1248942ms [             87] 2018-12-17 10:20:45,089 [INFO ] LMI => AfterReceiveRequest - [Operation]=get-current-transaction-totals;[SessionId]=39c7ffd0-7c94-43a7-834a-68d"))
                 //{
                 //    ;
                 //}
@@ -511,7 +511,7 @@ namespace MosaicPosLogTool
                     }
                 }
 
-                match = Regex.Match(_currentLine, @"\[\s*(\d+)\]", RegexOptions.IgnoreCase);
+                match = Regex.Match(_currentLine, @"^\d+\s*ms \[\s*(\d+)\]", RegexOptions.IgnoreCase);
                 if(match.Success)
                 {
                     threadId = Convert.ToInt32(match.Groups[1].Value);
