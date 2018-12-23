@@ -42,7 +42,7 @@ namespace MosaicPosLogTool
             _errorCountDic = new Dictionary<string, int>();
             _saveTransactionOperations = new List<Operation>();
             _outputPathLogs = Environment.CurrentDirectory + @"\Logs";
-            _outputPathErrors = Environment.CurrentDirectory + @"\Errors";
+            _outputPathErrors = Environment.CurrentDirectory + @"\Analysis";
             _progress = progress;
             _cancellationToken = cancellationToken;
             _enableErrorCheck = enableErrorCheck;
@@ -260,6 +260,8 @@ namespace MosaicPosLogTool
                     closingFilesReport.ReportType = ProgressReportTypeEnum.ClosingFiles;
                     _progress.Report(closingFilesReport);
 
+                    var machineSessionDic = new Dictionary<string, List<string>>();
+
                     var currentClosingFileCount = 0;
                     foreach (var sessionPair in _sessionDic)
                     {
@@ -268,13 +270,27 @@ namespace MosaicPosLogTool
                         if (session.Writer != null)
                         {
                             session.Writer.Close();
-                            string newFileName = $@"{_outputPathLogs}\[{session.StartTime}]-[{session.EndTime}][ERROR({session.ErrorCount})][FATAL({session.FatalCount})] {sessionId}.txt";
+                            string newFileName = $@"{_outputPathLogs}\[{session.StartTime}]-[{session.EndTime}][ERROR({session.ErrorCount})][FATAL({session.FatalCount})][{sessionId}][{session.StoreCode}][{session.RegisterNumber}][{session.MachineName}].txt";
                             if (File.Exists(newFileName))
                             {
                                 File.Delete(newFileName);
                             }
 
                             File.Move(session.FileName, newFileName);
+                        }
+
+                        // Save session ids for each machine
+                        if(session.MachineName != null)
+                        {
+                            string key = $"[{session.MachineName}],[{session.StoreCode}],[{session.RegisterNumber}]";
+                            if(!machineSessionDic.ContainsKey(key))
+                            {
+                                machineSessionDic.Add(key, new List<string> { sessionId });
+                            }
+                            else
+                            {
+                                machineSessionDic[key].Add(sessionId);
+                            }
                         }
 
                         currentClosingFileCount++;
@@ -387,6 +403,26 @@ namespace MosaicPosLogTool
 
                     }
 
+                    if (machineSessionDic.Count > 0)
+                    {
+                        string fileName = $@"{_outputPathErrors}\MachineSessions.txt";
+                        if (File.Exists(fileName))
+                        {
+                            File.Delete(fileName);
+                        }
+
+                        using (var writer = new StreamWriter(fileName, true))
+                        {
+                            foreach (var pair in machineSessionDic)
+                            {
+                                foreach(var sid in pair.Value)
+                                {
+                                    writer.WriteLine($"{pair.Key},[{sid}]");
+                                }
+                            }
+                        }
+                    }
+
                     watchTotal.Stop();
 
                     ProgressReportModel totalTimeReport = new ProgressReportModel();
@@ -418,6 +454,10 @@ namespace MosaicPosLogTool
                 bool isError = false;
                 bool isFatal = false;
                 int operationInsertIndex = 60;
+
+                string storeCode = null;
+                string registerNumer = null;
+                string machineName = null;
 
                 Match match = Regex.Match(_currentLine, @"\[\s*\d+\] (.+) \[(INFO |ERROR|DEBUG|WARN |FATAL)\]", RegexOptions.IgnoreCase);
                 if (match.Success)
@@ -455,6 +495,19 @@ namespace MosaicPosLogTool
                     {
                         sessionId = match.Groups[1].Value;
                         foundSessionId = true;
+                    }
+                    else
+                    {
+                        match = Regex.Match(_currentLine, @"Operation=OpenSession, SessionId=([^,]+), StoreCode=([^,]+), RegisterNumber=([^,]+), ComputerName=(.+)", RegexOptions.IgnoreCase);
+                        if (match.Success)
+                        {
+                            sessionId = match.Groups[1].Value;
+                            foundSessionId = true;
+
+                            storeCode = match.Groups[2].Value;
+                            registerNumer = match.Groups[3].Value;
+                            machineName = match.Groups[4].Value;
+                        }
                     }
                 }
 
@@ -532,6 +585,13 @@ namespace MosaicPosLogTool
                         }
 
                         _sessionDic[sessionId].EndTime = timeStamp;
+                    }
+
+                    if (storeCode != null && registerNumer != null && machineName != null)
+                    {
+                        _sessionDic[sessionId].StoreCode = storeCode;
+                        _sessionDic[sessionId].RegisterNumber = registerNumer;
+                        _sessionDic[sessionId].MachineName = machineName;
                     }
                 }
 

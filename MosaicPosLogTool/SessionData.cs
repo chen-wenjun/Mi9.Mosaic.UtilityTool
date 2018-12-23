@@ -16,5 +16,9 @@ namespace MosaicPosLogTool
         public string EndTime { get; set; }
         public int ErrorCount { get; set; }
         public int FatalCount { get; set; }
+        public string StoreCode { get; set; }
+        public string RegisterNumber { get; set; }
+        public string MachineName { get; set; }
+
     }
 }
